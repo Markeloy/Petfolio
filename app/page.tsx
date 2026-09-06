@@ -1,9 +1,23 @@
+"use client";
+
+import { useState, type ReactNode } from "react";
+
 type IconName =
-  | "bell" | "heart" | "calendar" | "bowl" | "file" | "paw" | "settings"
-  | "home" | "stock" | "family" | "syringe";
+  | "bell"
+  | "heart"
+  | "calendar"
+  | "bowl"
+  | "file"
+  | "paw"
+  | "settings"
+  | "home"
+  | "stock"
+  | "family"
+  | "more"
+  | "syringe";
 
 function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
-  const paths: Record<IconName, React.ReactNode> = {
+  const paths: Record<IconName, ReactNode> = {
     bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></>,
     heart: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>,
     calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></>,
@@ -14,54 +28,57 @@ function Icon({ name, size = 24 }: { name: IconName; size?: number }) {
     home: <><path d="m3 11 9-8 9 8"/><path d="M5 10v11h14V10M9 21v-7h6v7"/></>,
     stock: <><path d="M5 8h14l-1 13H6Z"/><path d="M8 8V5a4 4 0 0 1 8 0v3M9 13h6M9 17h4"/></>,
     family: <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c0-4 2.4-7 6-7s6 3 6 7M14 15c4 0 7 2 7 6"/></>,
+    more: <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
     syringe: <><path d="m15 3 6 6M17 7l-9 9M14 4l6 6M7 13l4 4M8 16l-4 4M3 21l2-2"/></>,
   };
+
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
-type Pet = { id: string; name: string; breed: string; image: string; stats: [string, string][] };
+type Pet = {
+  id: string;
+  name: string;
+  image: string;
+  stats: [string, string][];
+};
 
-// Нового питомца позже можно будет добавить в этот список без изменения компонентов.
-const pets: Pet[] = [{
-  id: "marley",
-  name: "Марли",
-  breed: "Французский бульдог",
-  image: "/marley.svg",
-  stats: [["12.4 кг", "Вес"], ["2 года", "Возраст"], ["Кобель", "Пол"], ["Компактный", "Размер"]],
-}];
+const pets: Pet[] = [
+  {
+    id: "marley",
+    name: "Марли",
+    image: "/marley.svg",
+    stats: [["12.4 кг", "Вес"], ["2 года", "Возраст"]],
+  },
+];
 
 const sections: { title: string; description: string; icon: IconName; tone: string }[] = [
-  { title: "Здоровье", description: "Вакцинации, осмотры, анализы", icon: "heart", tone: "rose" },
-  { title: "Напоминания", description: "Лекарства, процедуры, уход", icon: "calendar", tone: "lilac" },
-  { title: "Кормление", description: "Рацион, нормы, график", icon: "bowl", tone: "sand" },
-  { title: "Документы", description: "Паспорт, вет. справки", icon: "file", tone: "blue" },
-  { title: "Активности", description: "Прогулки, игры, тренировки", icon: "paw", tone: "green" },
-  { title: "Настройки", description: "Профиль, параметры", icon: "settings", tone: "gray" },
+  { title: "Здоровье", description: "Вакцинации, обработки, осмотры", icon: "heart", tone: "rose" },
+  { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac" },
+  { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand" },
+  { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue" },
+  { title: "Активность", description: "Прогулки, тренировки", icon: "paw", tone: "green" },
+  { title: "Профиль", description: "Фото, дата рождения, вес", icon: "settings", tone: "gray" },
 ];
 
 function TopBar() {
   return <header className="topBar"><p className="eyebrow">Petfolio</p><button className="iconButton" type="button" aria-label="Уведомления"><Icon name="bell"/></button></header>;
 }
 
-function PetProfile({ pet }: { pet: Pet }) {
-  return <article className="petSlide" aria-label={`${pet.name}, ${pet.breed}`}>
-    <div className="petHeading"><h1>{pet.name}</h1><p className="breed">{pet.breed}</p></div>
+function PetProfile({ pet, showAdd }: { pet: Pet; showAdd: boolean }) {
+  return <article className="petSlide" aria-label={pet.name}>
+    <div className="petHeading"><h1>{pet.name}</h1></div>
     <div className="petOverview">
       <div className="stats">{pet.stats.map(([value, label]) => <div className="stat" key={label}><strong>{value}</strong><span>{label}</span></div>)}</div>
-      <div className="petPhoto"><img src={pet.image} alt={`${pet.breed} ${pet.name}`}/></div>
-      <div aria-hidden="true" />
+      <div className="petPhoto"><img src={pet.image} alt={pet.name}/></div>
+      {showAdd ? <button className="addPet" type="button" aria-label="Добавить питомца"><span>＋</span><small>Добавить<br/>питомца</small></button> : <div aria-hidden="true" />}
     </div>
   </article>;
 }
 
-function AddPetSlide() {
-  return <article className="petSlide addPetSlide" aria-label="Добавить питомца"><button type="button"><span>＋</span><strong>Добавить питомца</strong><small>Создать новый профиль</small></button></article>;
-}
-
 function PetCarousel() {
   return <section className="petCarousel" aria-label="Профили питомцев">
-    <div className="petTrack">{pets.map(pet => <PetProfile key={pet.id} pet={pet}/>)}<AddPetSlide/></div>
-    <div className="carouselStatus" aria-hidden="true"><i className="active"/><i/><span>Смахните, чтобы переключить</span></div>
+    <div className="petTrack">{pets.map((pet, index) => <PetProfile key={pet.id} pet={pet} showAdd={index === pets.length - 1}/>)}</div>
+    <div className="carouselStatus" aria-hidden="true">{pets.map((pet, index) => <i className={index === 0 ? "active" : ""} key={pet.id}/>)}</div>
   </section>;
 }
 
@@ -73,11 +90,38 @@ function Reminder() {
   return <button className="reminder" type="button"><span className="reminderIcon"><Icon name="syringe"/></span><span><small>Следующее напоминание</small><strong>Вакцинация</strong><time dateTime="2024-10-12">12 октября 2024</time></span><b>›</b></button>;
 }
 
-const navItems: { label: string; icon: IconName }[] = [{ label: "Главная", icon: "home" }, { label: "Здоровье", icon: "heart" }, { label: "Запасы", icon: "stock" }, { label: "Семья", icon: "family" }];
-function BottomNav() {
-  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item, index) => <button className={index === 0 ? "active" : ""} type="button" key={item.label}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
+type NavKey = "home" | "calendar" | "stock" | "family" | "more";
+
+const navItems: { key: NavKey; label: string; icon: IconName }[] = [
+  { key: "home", label: "Главная", icon: "home" },
+  { key: "calendar", label: "Календарь", icon: "calendar" },
+  { key: "stock", label: "Запасы", icon: "stock" },
+  { key: "family", label: "Семья", icon: "family" },
+  { key: "more", label: "Ещё", icon: "more" },
+];
+
+const placeholderCopy: Record<Exclude<NavKey, "home">, { title: string; description: string }> = {
+  calendar: { title: "Календарь", description: "Здесь появятся события всех питомцев" },
+  stock: { title: "Запасы", description: "Здесь появятся запасы и расходники" },
+  family: { title: "Семья", description: "Здесь будет совместный уход за питомцами" },
+  more: { title: "Ещё", description: "Здесь будут настройки Petfolio" },
+};
+
+function BottomNav({ active, onChange }: { active: NavKey; onChange: (tab: NavKey) => void }) {
+  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
+}
+
+function HomeContent() {
+  return <><TopBar/><PetCarousel/><section className="sectionGrid" aria-label="Разделы питомца">{sections.map((section) => <SectionCard key={section.title} {...section}/>)}</section><Reminder/></>;
+}
+
+function PlaceholderScreen({ tab }: { tab: Exclude<NavKey, "home"> }) {
+  const copy = placeholderCopy[tab];
+  return <><TopBar/><section className="placeholderScreen"><span className="placeholderIcon"><Icon name={navItems.find((item) => item.key === tab)?.icon ?? "home"} size={30}/></span><h1>{copy.title}</h1><p>{copy.description}</p></section></>;
 }
 
 export default function Home() {
-  return <main className="appShell"><div className="content"><TopBar/><PetCarousel/><section className="sectionGrid" aria-label="Разделы">{sections.map(section => <SectionCard key={section.title} {...section}/>)}</section><Reminder/></div><BottomNav/></main>;
+  const [activeTab, setActiveTab] = useState<NavKey>("home");
+
+  return <main className="appShell"><div className="content">{activeTab === "home" ? <HomeContent/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;
 }
