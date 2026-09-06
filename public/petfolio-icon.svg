@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Petfolio">
+  <rect width="512" height="512" rx="120" fill="#f7f4ee"/>
+  <circle cx="256" cy="285" r="92" fill="#ce755c"/>
+  <circle cx="148" cy="185" r="48" fill="#ce755c"/>
+  <circle cx="238" cy="142" r="48" fill="#ce755c"/>
+  <circle cx="328" cy="151" r="48" fill="#ce755c"/>
+  <circle cx="382" cy="227" r="45" fill="#ce755c"/>
+</svg>
