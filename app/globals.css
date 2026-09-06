@@ -5,21 +5,29 @@ body { background:#e8e4dd; color:var(--ink); font-family:-apple-system,BlinkMacS
 button { color:inherit; font:inherit; }
 .appShell { width:100%; max-width:480px; min-height:100dvh; margin:0 auto; background:var(--paper); position:relative; box-shadow:0 0 50px rgba(53,45,35,.08); }
 .content { padding:32px 20px 118px; }
-.header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:28px; }
+.topBar { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
 .eyebrow { margin:0 0 5px; color:var(--accent); font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
 h1 { margin:0; font-family:Georgia,serif; font-size:38px; font-weight:500; line-height:1; letter-spacing:-.04em; }
 .breed { margin:8px 0 0; color:var(--muted); font-size:14px; }
 .iconButton { width:46px; height:46px; display:grid; place-items:center; border:0; border-radius:50%; background:#fff; box-shadow:0 8px 25px rgba(65,58,48,.09); }
-.petOverview { display:grid; grid-template-columns:76px minmax(0,1fr) 72px; align-items:center; gap:10px; margin-bottom:30px; }
+.petCarousel { margin-inline:-20px; overflow:hidden; }
+.petTrack { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior-x:contain; }
+.petTrack::-webkit-scrollbar { display:none; }
+.petSlide { min-width:100%; padding:8px 20px 0; scroll-snap-align:start; }
+.petHeading { margin-bottom:21px; }
+.petOverview { display:grid; grid-template-columns:76px minmax(0,1fr) 76px; align-items:center; gap:10px; }
 .stats { display:flex; flex-direction:column; gap:11px; }
 .stat strong,.stat span { display:block; }
 .stat strong { font-size:13px; line-height:1.2; }
 .stat span { margin-top:2px; color:var(--muted); font-size:10px; }
 .petPhoto { aspect-ratio:1; border:7px solid #fff; border-radius:50%; overflow:hidden; background:#dbcdbf; box-shadow:0 14px 30px rgba(73,58,43,.16); }
 .petPhoto img { width:100%; height:100%; display:block; object-fit:cover; }
-.addPet { display:flex; flex-direction:column; align-items:center; gap:7px; border:0; background:transparent; padding:0; }
-.addPet > span { width:48px; height:48px; display:grid; place-items:center; border-radius:50%; background:var(--ink); color:#fff; font-size:25px; font-weight:300; box-shadow:0 8px 18px rgba(41,40,34,.2); }
-.addPet small { color:#6e6a63; font-size:9px; line-height:1.3; }
+.addPetSlide { min-height:254px; display:grid; place-items:center; }
+.addPetSlide button { display:flex; flex-direction:column; align-items:center; gap:7px; border:0; background:transparent; }
+.addPetSlide button > span { width:76px; height:76px; display:grid; place-items:center; margin-bottom:6px; border-radius:50%; background:var(--ink); color:#fff; font-size:38px; font-weight:300; box-shadow:0 12px 24px rgba(41,40,34,.2); }
+.addPetSlide strong { font-family:Georgia,serif; font-size:21px; }.addPetSlide small { color:var(--muted); font-size:11px; }
+.carouselStatus { height:43px; display:flex; align-items:center; justify-content:center; gap:5px; color:var(--muted); font-size:9px; }
+.carouselStatus i { width:5px; height:5px; border-radius:50%; background:#ccc6bd; }.carouselStatus i.active { width:15px; border-radius:8px; background:var(--accent); }.carouselStatus span { margin-left:5px; }
 .sectionGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .sectionCard { min-height:148px; display:flex; flex-direction:column; align-items:flex-start; position:relative; padding:17px; border:0; border-radius:23px; text-align:left; }
 .sectionCard.rose { background:#f2ded8; }.sectionCard.lilac { background:#e9e2ed; }.sectionCard.sand { background:#eee5d3; }.sectionCard.blue { background:#dfe9eb; }.sectionCard.green { background:#dfe9dd; }.sectionCard.gray { background:#e7e5df; }
@@ -36,4 +44,4 @@ h1 { margin:0; font-family:Georgia,serif; font-size:38px; font-weight:500; line-
 .bottomNav button.active { color:var(--accent); }.bottomNav button.active svg { fill:#f2d8d0; }
 button { cursor:pointer; -webkit-tap-highlight-color:transparent; } button:focus-visible { outline:3px solid rgba(206,117,92,.45); outline-offset:2px; }
 @media (min-width:481px) { body { padding:24px 0; }.appShell { min-height:calc(100dvh - 48px); border-radius:34px; overflow:hidden; } }
-@media (max-width:360px) { .content { padding-inline:15px; }.petOverview { grid-template-columns:68px minmax(0,1fr) 62px; gap:6px; }.sectionCard { min-height:140px; padding:14px; } }
+@media (max-width:360px) { .content { padding-inline:15px; }.petCarousel { margin-inline:-15px; }.petSlide { padding-inline:15px; }.petOverview { grid-template-columns:68px minmax(0,1fr) 68px; gap:6px; }.sectionCard { min-height:140px; padding:14px; } }
