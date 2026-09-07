@@ -78,18 +78,25 @@ export default async function HomePage() {
     if (!latestWeights.has(row.pet_id)) latestWeights.set(row.pet_id, Number(row.weight_kg));
   }
 
-  const pets: PetViewModel[] = petRows.map((pet) => {
+  const pets: PetViewModel[] = await Promise.all(petRows.map(async (pet) => {
     const weight = latestWeights.get(pet.id);
+    let image: string | null = null;
+
+    if (pet.avatar_url) {
+      const { data } = await supabase.storage.from("pet-avatars").createSignedUrl(pet.avatar_url, 60 * 60);
+      image = data?.signedUrl ?? null;
+    }
+
     return {
       id: pet.id,
       name: pet.name,
-      image: pet.avatar_url,
+      image,
       stats: [
         [weight ? `${weight.toLocaleString("ru-RU", { maximumFractionDigits: 3 })} кг` : "—", "Вес"],
         [formatAge(pet.birth_date), "Возраст"],
       ],
     };
-  });
+  }));
 
   return <PetfolioHome pets={pets} />;
 }
