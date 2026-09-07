@@ -3,6 +3,38 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { todayOccurrence } from '@/lib/medications/schedule';
+
+type MedicationStatus = 'active' | 'paused' | 'completed';
+
+export async function setMedicationStatus(petId: string, medicationId: string, formData: FormData) {
+  const path = `/pets/${petId}/care/medications/${medicationId}`;
+  const status = String(formData.get('status')) as MedicationStatus;
+  if (!['active', 'paused', 'completed'].includes(status)) {
+    redirect(`${path}?error=${encodeURIComponent('Неизвестное действие с курсом.')}`);
+  }
+
+  const supabase = await createClient();
+  const { data: auth, error: authError } = await supabase.auth.getClaims();
+  if (authError || !auth?.claims?.sub) redirect('/login');
+
+  const { data, error } = await supabase
+    .from('medications')
+    .update({ status })
+    .eq('id', medicationId)
+    .eq('pet_id', petId)
+    .select('id')
+    .maybeSingle();
+
+  if (error || !data) {
+    redirect(`${path}?error=${encodeURIComponent('Не удалось изменить состояние курса.')}`);
+  }
+
+  revalidatePath(path);
+  revalidatePath(`/pets/${petId}/care`);
+  revalidatePath('/');
+  redirect(`${path}?course=${status}`);
+}
+
 export async function recordDose(petId: string, medicationId: string, scheduleId: string, scheduledFor: string, formData: FormData) {
   const path = `/pets/${petId}/care/medications/${medicationId}`;
   const fail = (message: string): never => redirect(`${path}?error=${encodeURIComponent(message)}`);

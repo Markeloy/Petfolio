@@ -17,3 +17,6 @@
 .scheduleDayOptions { display: flex; flex-wrap: wrap; gap: 12px; }
 .scheduleDayOptions label { display: flex; flex-direction: row; align-items: center; gap: 6px; min-height: 44px; }
 .scheduleDayOptions input[type="checkbox"] { width: 20px; height: 20px; min-height: 20px; margin: 0; }
+.courseActions { display: grid; gap: 10px; margin-top: 22px; }
+.courseActions form { margin: 0; }
+.courseActions button:disabled { opacity: .6; cursor: wait; }
