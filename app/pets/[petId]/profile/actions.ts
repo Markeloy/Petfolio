@@ -13,7 +13,7 @@ const avatarExtensions: Record<string, string> = {
   "image/heif": "heif",
 };
 
-function profileRedirect(petId: string, key: "error" | "saved", value: string) {
+function profileRedirect(petId: string, key: "error" | "saved", value: string): never {
   const params = new URLSearchParams({ [key]: value });
   redirect(`/pets/${petId}/profile?${params.toString()}`);
 }

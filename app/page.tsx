@@ -1,3 +1,4 @@
+import { getReminders } from "@/lib/medications/reminders";
 import { redirect } from "next/navigation";
 import { PetfolioHome, type PetViewModel } from "@/app/components/petfolio-home";
 import { createClient } from "@/lib/supabase/server";
@@ -78,6 +79,8 @@ export default async function HomePage() {
     if (!latestWeights.has(row.pet_id)) latestWeights.set(row.pet_id, Number(row.weight_kg));
   }
 
+  const reminders = await getReminders(supabase, petIds);
+
   const pets: PetViewModel[] = await Promise.all(petRows.map(async (pet) => {
     const weight = latestWeights.get(pet.id);
     let image: string | null = null;
@@ -91,6 +94,8 @@ export default async function HomePage() {
       id: pet.id,
       name: pet.name,
       image,
+      reminder: reminders?.get(pet.id) ?? null,
+      reminderError: reminders === null,
       stats: [
         [weight ? `${weight.toLocaleString("ru-RU", { maximumFractionDigits: 3 })} кг` : "—", "Вес"],
         [formatAge(pet.birth_date), "Возраст"],

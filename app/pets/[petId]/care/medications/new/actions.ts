@@ -35,9 +35,9 @@ export async function createMedication(petId: string, formData: FormData) {
 
   const startsOn = String(formData.get("startsOn") ?? "").trim() || new Date().toISOString().slice(0, 10);
   const endsOn = optionalText(formData, "endsOn");
-  const times = ["time1", "time2", "time3"]
+  const times = [...new Set(["time1", "time2", "time3"]
     .map((key) => String(formData.get(key) ?? "").trim())
-    .filter(Boolean);
+    .filter(Boolean))];
 
   const { data: medication, error: medicationError } = await supabase
     .from("medications")
@@ -74,5 +74,5 @@ export async function createMedication(petId: string, formData: FormData) {
     }
   }
 
-  redirect(`/pets/${petId}/care`);
+  redirect(`/pets/${petId}/care/medications/${medication.id}`);
 }

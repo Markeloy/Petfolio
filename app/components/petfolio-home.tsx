@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { ReminderView } from "@/lib/medications/reminders";
+import { RefreshOnFocus } from "./refresh-on-focus";
 import { useRef, useState, type ReactNode, type UIEvent } from "react";
 
 type IconName =
@@ -41,6 +43,8 @@ export type PetViewModel = {
   name: string;
   image: string | null;
   stats: [string, string][];
+  reminder: ReminderView | null;
+  reminderError: boolean;
 };
 
 const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" }[] = [
@@ -89,7 +93,10 @@ function SectionCard({ section, petId }: { section: (typeof sections)[number]; p
   return <button className={`sectionCard ${section.tone}`} type="button">{content}</button>;
 }
 
-function Reminder() {
+function Reminder({ pet }: { pet: PetViewModel }) {
+  if (pet.reminderError) return <div className="reminder" role="status"><span>Не удалось загрузить ближайший приём. Обновите страницу.</span></div>;
+  const reminder = pet.reminder;
+  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name="syringe"/></span><span><small>Следующий приём · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
   return <button className="reminder" type="button"><span className="reminderIcon"><Icon name="syringe"/></span><span><small>Следующее напоминание</small><strong>Пока ничего не запланировано</strong><time>Добавьте событие в календарь</time></span><b>›</b></button>;
 }
 
@@ -115,7 +122,7 @@ function BottomNav({ active, onChange }: { active: NavKey; onChange: (tab: NavKe
 
 function HomeContent({ pets, activePetIndex, onActivePetIndexChange }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void }) {
   const activePet = pets[activePetIndex] ?? pets[0];
-  return <><TopBar/><PetCarousel pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label="Разделы питомца">{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder/></>;
+  return <><TopBar/><PetCarousel pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label="Разделы питомца">{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/></>;
 }
 
 function PlaceholderScreen({ tab }: { tab: "calendar" | "stock" | "family" }) {
@@ -131,5 +138,5 @@ export function PetfolioHome({ pets }: { pets: PetViewModel[] }) {
   const [activeTab, setActiveTab] = useState<NavKey>("home");
   const [activePetIndex, setActivePetIndex] = useState(0);
 
-  return <main className="appShell"><div className="content">{activeTab === "home" ? <HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={setActivePetIndex}/> : activeTab === "more" ? <MoreScreen/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;
+  return <main className="appShell"><RefreshOnFocus/><div className="content">{activeTab === "home" ? <HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={setActivePetIndex}/> : activeTab === "more" ? <MoreScreen/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;
 }

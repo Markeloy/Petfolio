@@ -53,7 +53,7 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
       {activeMedications.length === 0 ? (
         <div className="emptyStateCard">
           <strong>Лекарств пока нет</strong>
-          <p>Добавьте курс, дозировку и время приёма. Позже здесь появятся отметки «Дано» и общая история семьи.</p>
+          <p>Добавьте курс, дозировку и время приёма. Откройте лекарство, чтобы отметить приём и посмотреть историю семьи.</p>
           <Link className="primaryAction inlineAction" href={`/pets/${petId}/care/medications/new`}>Добавить лекарство</Link>
         </div>
       ) : (
@@ -65,12 +65,12 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
               .filter(Boolean);
             const dose = medication.dose_amount && medication.dose_unit ? `${medication.dose_amount} ${medication.dose_unit}` : "Дозировка не указана";
 
-            return <article className="medicationCard" key={medication.id}>
+            return <Link className="medicationCard medicationLink" href={`/pets/${petId}/care/medications/${medication.id}`} key={medication.id}>
               <div className="medicationCardTop"><strong>{medication.name}</strong><span>{medication.status === "paused" ? "На паузе" : "Активно"}</span></div>
               <p>{dose}</p>
               {scheduleTimes.length > 0 ? <div className="scheduleChips">{scheduleTimes.map((time) => <span key={time}>{time}</span>)}</div> : <small>Без фиксированного времени</small>}
               {medication.instructions ? <small>{medication.instructions}</small> : null}
-            </article>;
+            <span className="medicationOpen">Приёмы и история →</span></Link>;
           })}
         </div>
       )}
