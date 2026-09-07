@@ -39,6 +39,19 @@ export async function createMedication(petId: string, formData: FormData) {
     .map((key) => String(formData.get(key) ?? "").trim())
     .filter(Boolean))];
 
+  const timezone = String(formData.get("timezone") ?? "Europe/Moscow").trim();
+  const daysOfWeek = [...new Set(formData.getAll("daysOfWeek").map(Number))];
+  const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value)
+    && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  let validationError = "";
+  if (!validDate(startsOn) || (endsOn && !validDate(endsOn))) validationError = "Укажите корректные даты курса";
+  else if (endsOn && endsOn < startsOn) validationError = "Окончание курса не может быть раньше начала";
+  else if (!times.length || times.some(time => !/^([01]\d|2[0-3]):[0-5]\d$/.test(time))) validationError = "Укажите хотя бы одно корректное время приёма";
+  else if (!daysOfWeek.length || daysOfWeek.some(day => !Number.isInteger(day) || day < 1 || day > 7)) validationError = "Выберите дни приёма";
+  try { new Intl.DateTimeFormat("ru-RU", { timeZone: timezone }).format(); }
+  catch { validationError = "Выберите корректный часовой пояс"; }
+  if (validationError) redirect(`/pets/${petId}/care/medications/new?error=${encodeURIComponent(validationError)}`);
+
   const { data: medication, error: medicationError } = await supabase
     .from("medications")
     .insert({
@@ -63,6 +76,8 @@ export async function createMedication(petId: string, formData: FormData) {
     const scheduleRows = times.map((time) => ({
       medication_id: medication.id,
       scheduled_time: time,
+      days_of_week: daysOfWeek,
+      timezone,
       active_from: startsOn,
       active_until: endsOn,
       created_by: userId,

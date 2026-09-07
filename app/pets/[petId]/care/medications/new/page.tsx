@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ScheduleFields } from "./schedule-fields";
+import { SaveButton } from "./save-button";
 import { createMedication } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -60,17 +62,18 @@ export default async function NewMedicationPage({ params, searchParams }: { para
         <p className="wizardEyebrow">Время приёма</p>
         <p className="formSectionHint">Можно указать до трёх приёмов в день. Оставьте лишние поля пустыми.</p>
         <div className="timeFields">
-          <label><span>Приём 1</span><input name="time1" type="time" /></label>
+          <label><span>Приём 1</span><input name="time1" type="time" required /></label>
           <label><span>Приём 2</span><input name="time2" type="time" /></label>
           <label><span>Приём 3</span><input name="time3" type="time" /></label>
         </div>
+        <ScheduleFields />
       </section>
 
       <section className="formSectionCard">
         <label className="standaloneLabel"><span>Комментарий</span><textarea name="notes" rows={3} placeholder="Любая важная информация о курсе" /></label>
       </section>
 
-      <button className="primaryAction" type="submit">Сохранить лекарство</button>
+      <SaveButton />
     </form>
   </main>;
 }
