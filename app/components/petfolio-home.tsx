@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode, type UIEvent } from "react";
 
 type IconName =
   | "bell"
@@ -43,9 +43,9 @@ export type PetViewModel = {
   stats: [string, string][];
 };
 
-const sections: { title: string; description: string; icon: IconName; tone: string }[] = [
+const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" }[] = [
   { title: "Здоровье", description: "Вакцинации, обработки, осмотры", icon: "heart", tone: "rose" },
-  { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac" },
+  { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac", route: "care" },
   { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand" },
   { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue" },
   { title: "Активность", description: "Прогулки, тренировки", icon: "paw", tone: "green" },
@@ -67,15 +67,26 @@ function PetProfile({ pet, showAdd }: { pet: PetViewModel; showAdd: boolean }) {
   </article>;
 }
 
-function PetCarousel({ pets }: { pets: PetViewModel[] }) {
+function PetCarousel({ pets, activeIndex, onActiveIndexChange }: { pets: PetViewModel[]; activeIndex: number; onActiveIndexChange: (index: number) => void }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  function handleScroll(event: UIEvent<HTMLDivElement>) {
+    const width = event.currentTarget.clientWidth;
+    if (!width) return;
+    const nextIndex = Math.min(pets.length - 1, Math.max(0, Math.round(event.currentTarget.scrollLeft / width)));
+    if (nextIndex !== activeIndex) onActiveIndexChange(nextIndex);
+  }
+
   return <section className="petCarousel" aria-label="Профили питомцев">
-    <div className="petTrack">{pets.map((pet, index) => <PetProfile key={pet.id} pet={pet} showAdd={index === pets.length - 1}/>)}</div>
-    <div className="carouselStatus" aria-hidden="true">{pets.map((pet, index) => <i className={index === 0 ? "active" : ""} key={pet.id}/>)}</div>
+    <div className="petTrack" ref={trackRef} onScroll={handleScroll}>{pets.map((pet, index) => <PetProfile key={pet.id} pet={pet} showAdd={index === pets.length - 1}/>)}</div>
+    <div className="carouselStatus" aria-hidden="true">{pets.map((pet, index) => <i className={index === activeIndex ? "active" : ""} key={pet.id}/>)}</div>
   </section>;
 }
 
-function SectionCard({ title, description, icon, tone }: (typeof sections)[number]) {
-  return <button className={`sectionCard ${tone}`} type="button"><span className="cardArrow">↗</span><span className="cardIcon"><Icon name={icon}/></span><strong>{title}</strong><small>{description}</small></button>;
+function SectionCard({ section, petId }: { section: (typeof sections)[number]; petId: string }) {
+  const content = <><span className="cardArrow">↗</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{section.title}</strong><small>{section.description}</small></>;
+  if (section.route === "care") return <Link className={`sectionCard ${section.tone}`} href={`/pets/${petId}/care`}>{content}</Link>;
+  return <button className={`sectionCard ${section.tone}`} type="button">{content}</button>;
 }
 
 function Reminder() {
@@ -102,8 +113,9 @@ function BottomNav({ active, onChange }: { active: NavKey; onChange: (tab: NavKe
   return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
 }
 
-function HomeContent({ pets }: { pets: PetViewModel[] }) {
-  return <><TopBar/><PetCarousel pets={pets}/><section className="sectionGrid" aria-label="Разделы питомца">{sections.map((section) => <SectionCard key={section.title} {...section}/>)}</section><Reminder/></>;
+function HomeContent({ pets, activePetIndex, onActivePetIndexChange }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void }) {
+  const activePet = pets[activePetIndex] ?? pets[0];
+  return <><TopBar/><PetCarousel pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label="Разделы питомца">{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder/></>;
 }
 
 function PlaceholderScreen({ tab }: { tab: "calendar" | "stock" | "family" }) {
@@ -117,6 +129,7 @@ function MoreScreen() {
 
 export function PetfolioHome({ pets }: { pets: PetViewModel[] }) {
   const [activeTab, setActiveTab] = useState<NavKey>("home");
+  const [activePetIndex, setActivePetIndex] = useState(0);
 
-  return <main className="appShell"><div className="content">{activeTab === "home" ? <HomeContent pets={pets}/> : activeTab === "more" ? <MoreScreen/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;
+  return <main className="appShell"><div className="content">{activeTab === "home" ? <HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={setActivePetIndex}/> : activeTab === "more" ? <MoreScreen/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;
 }
