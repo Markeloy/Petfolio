@@ -13,6 +13,11 @@ const avatarExtensions: Record<string, string> = {
   "image/heif": "heif",
 };
 
+function profileRedirect(petId: string, key: "error" | "saved", value: string) {
+  const params = new URLSearchParams({ [key]: value });
+  redirect(`/pets/${petId}/profile?${params.toString()}`);
+}
+
 export async function updatePetPhoto(petId: string, formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
@@ -28,13 +33,13 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
 
   const avatar = formData.get("avatar");
   if (!(avatar instanceof File) || avatar.size === 0) {
-    redirect(`/pets/${petId}/profile?error=Выберите фотографию`);
+    profileRedirect(petId, "error", "Выберите фотографию");
   }
   if (avatar.size > 8 * 1024 * 1024) {
-    redirect(`/pets/${petId}/profile?error=Фото должно быть не больше 8 МБ`);
+    profileRedirect(petId, "error", "Фото должно быть не больше 8 МБ");
   }
   if (!avatarMimeTypes.has(avatar.type)) {
-    redirect(`/pets/${petId}/profile?error=Используйте JPG, PNG, WebP, HEIC или HEIF`);
+    profileRedirect(petId, "error", "Используйте JPG, PNG, WebP, HEIC или HEIF");
   }
 
   const extension = avatarExtensions[avatar.type] ?? "jpg";
@@ -44,10 +49,10 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
     upsert: false,
   });
 
-  if (uploadError) redirect(`/pets/${petId}/profile?error=Не удалось загрузить фотографию`);
+  if (uploadError) profileRedirect(petId, "error", "Не удалось загрузить фотографию");
 
   const { error: updateError } = await supabase.from("pets").update({ avatar_url: avatarPath }).eq("id", petId);
-  if (updateError) redirect(`/pets/${petId}/profile?error=Фото загружено, но профиль не обновился`);
+  if (updateError) profileRedirect(petId, "error", "Фото загружено, но профиль не обновился");
 
-  redirect(`/pets/${petId}/profile?saved=1`);
+  profileRedirect(petId, "saved", "1");
 }
