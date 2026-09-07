@@ -43,13 +43,13 @@ export type PetViewModel = {
   stats: [string, string][];
 };
 
-const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" }[] = [
+const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" }[] = [
   { title: "Здоровье", description: "Вакцинации, обработки, осмотры", icon: "heart", tone: "rose" },
   { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac", route: "care" },
   { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand" },
   { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue" },
   { title: "Активность", description: "Прогулки, тренировки", icon: "paw", tone: "green" },
-  { title: "Профиль", description: "Фото, дата рождения, вес", icon: "settings", tone: "gray" },
+  { title: "Профиль", description: "Фото, дата рождения, вес", icon: "settings", tone: "gray", route: "profile" },
 ];
 
 function TopBar() {
@@ -85,7 +85,7 @@ function PetCarousel({ pets, activeIndex, onActiveIndexChange }: { pets: PetView
 
 function SectionCard({ section, petId }: { section: (typeof sections)[number]; petId: string }) {
   const content = <><span className="cardArrow">↗</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{section.title}</strong><small>{section.description}</small></>;
-  if (section.route === "care") return <Link className={`sectionCard ${section.tone}`} href={`/pets/${petId}/care`}>{content}</Link>;
+  if (section.route) return <Link className={`sectionCard ${section.tone}`} href={`/pets/${petId}/${section.route}`}>{content}</Link>;
   return <button className={`sectionCard ${section.tone}`} type="button">{content}</button>;
 }
 
