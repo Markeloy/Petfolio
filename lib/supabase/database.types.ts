@@ -419,6 +419,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      revise_medication_schedule: {
+        Args: { p_schedule_id: string; p_expected_updated_at: string; p_effective_on: string; p_time: string; p_days: number[] }
+        Returns: string
+      }
       record_medication_dose: {
         Args: {
           p_administered_at?: string

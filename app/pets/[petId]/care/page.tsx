@@ -76,6 +76,16 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
       )}
     </section>
 
+    <section className="careSection">
+      <h2>Завершённые курсы</h2>
+      <p className="formSectionHint">История остаётся доступной после завершения курса.</p>
+      <div className="medicationList">{(medications ?? []).filter(m => m.status === 'completed' || m.status === 'cancelled').map(m =>
+        <Link className="medicationCard medicationLink" href={`/pets/${petId}/care/medications/${m.id}`} key={m.id}>
+          <strong>{m.name}</strong><p>{m.status === 'completed' ? 'Завершено' : 'Отменено'} · Приёмы и история →</p>
+        </Link>
+      )}</div>
+    </section>
+
     <section className="careSection mutedCareSection">
       <div><p className="wizardEyebrow">Скоро</p><h2>Груминг и процедуры</h2></div>
       <p>Этот блок будет следующим: стрижка когтей, купание, чистка ушей и любые собственные процедуры.</p>
