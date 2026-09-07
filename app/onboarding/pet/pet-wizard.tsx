@@ -35,6 +35,7 @@ export function PetWizard({ error }: { error?: string }) {
       <h1>Основная информация</h1>
       <p>Имя обязательно, остальное можно заполнить сейчас или позже.</p>
       <div className="wizardFields">
+        <label><span>Фото питомца</span><input name="avatar" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" /><small className="fieldHint">JPG, PNG, WebP или фото с iPhone, до 8 МБ</small></label>
         <label><span>Имя питомца</span><input name="name" type="text" value={name} onChange={(event) => setName(event.target.value)} placeholder="Марли" required /></label>
         <label><span>Дата рождения</span><input name="birthDate" type="date" /></label>
         <label><span>Порода</span><input name="breed" type="text" placeholder="Необязательно" /></label>
