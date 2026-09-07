@@ -31,7 +31,7 @@ h1 { margin:0; font-family:Georgia,serif; font-size:38px; font-weight:500; line-
 .carouselStatus i { width:5px; height:5px; border-radius:50%; background:#ccc6bd; }
 .carouselStatus i.active { width:15px; border-radius:8px; background:var(--accent); }
 .sectionGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.sectionCard { min-height:148px; display:flex; flex-direction:column; align-items:flex-start; position:relative; padding:17px; border:0; border-radius:23px; text-align:left; }
+.sectionCard { min-height:148px; display:flex; flex-direction:column; align-items:flex-start; position:relative; padding:17px; border:0; border-radius:23px; text-align:left; text-decoration:none; color:inherit; }
 .sectionCard.rose { background:#f2ded8; }.sectionCard.lilac { background:#e9e2ed; }.sectionCard.sand { background:#eee5d3; }.sectionCard.blue { background:#dfe9eb; }.sectionCard.green { background:#dfe9dd; }.sectionCard.gray { background:#e7e5df; }
 .cardArrow { position:absolute; top:15px; right:16px; color:#6c6862; font-size:17px; }
 .cardIcon { width:36px; height:36px; display:grid; place-items:center; margin-bottom:auto; border-radius:12px; background:rgba(255,255,255,.55); }
@@ -96,7 +96,46 @@ button { cursor:pointer; -webkit-tap-highlight-color:transparent; } button:focus
 .speciesGrid button.selected { border-color:var(--accent); background:#f2ded8; box-shadow:0 0 0 2px rgba(206,117,92,.12); }
 .wizardFields { display:grid; gap:13px; }
 .wizardActions { display:grid; grid-template-columns:auto 1fr; gap:10px; margin-top:24px; }
+.fieldHint { color:var(--muted); font-size:10px; line-height:1.4; }
 
-@media (min-width:481px) { body { padding:24px 0; }.appShell { min-height:calc(100dvh - 48px); border-radius:34px; overflow:hidden; }.authShell { padding:24px; }.petOnboardingShell { place-items:start center; } }
+.detailShell { width:100%; max-width:480px; min-height:100dvh; margin:0 auto; padding:28px 20px 48px; background:var(--paper); box-shadow:0 0 50px rgba(53,45,35,.08); }
+.detailTopBar { display:grid; grid-template-columns:44px 1fr 44px; align-items:center; gap:12px; margin-bottom:24px; }
+.detailTopBar > div { text-align:center; }
+.detailTopBar h1 { margin-top:3px; font-size:31px; }
+.backButton { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:#fff; text-decoration:none; font-size:32px; line-height:1; box-shadow:0 8px 25px rgba(65,58,48,.08); }
+.detailTopSpacer { width:44px; height:44px; }
+.careHero { padding:22px; border-radius:26px; background:#e9e2ed; }
+.careHero h2,.careSection h2 { margin:0; font-family:Georgia,serif; font-size:25px; font-weight:600; line-height:1.08; }
+.careHero > p:last-child,.mutedCareSection > p,.formSectionHint { margin:10px 0 0; color:#6f6a63; font-size:12px; line-height:1.5; }
+.careSection { margin-top:18px; padding:20px; border-radius:26px; background:#fff; box-shadow:0 10px 28px rgba(65,58,48,.06); }
+.sectionHeadingRow { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.compactAction { display:inline-grid; place-items:center; min-height:38px; padding:0 13px; border-radius:13px; background:var(--ink); color:#fff; text-decoration:none; font-size:11px; font-weight:700; white-space:nowrap; }
+.emptyStateCard { margin-top:18px; padding:18px; border-radius:20px; background:#f4f0e9; }
+.emptyStateCard strong { font-family:Georgia,serif; font-size:19px; }
+.emptyStateCard p { margin:7px 0 16px; color:var(--muted); font-size:12px; line-height:1.5; }
+.inlineAction { display:grid; place-items:center; text-decoration:none; }
+.medicationList { display:grid; gap:10px; margin-top:16px; }
+.medicationCard { padding:17px; border-radius:19px; background:#f4f0e9; }
+.medicationCardTop { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.medicationCardTop strong { font-family:Georgia,serif; font-size:18px; }
+.medicationCardTop span { padding:5px 8px; border-radius:999px; background:#e1eadf; color:#486044; font-size:9px; font-weight:800; text-transform:uppercase; }
+.medicationCard p { margin:7px 0; font-size:13px; font-weight:700; }
+.medicationCard small { display:block; margin-top:8px; color:var(--muted); font-size:10px; line-height:1.4; }
+.scheduleChips { display:flex; flex-wrap:wrap; gap:6px; }
+.scheduleChips span { padding:6px 9px; border-radius:999px; background:#fff; font-size:11px; font-weight:700; }
+.mutedCareSection { background:#eee5d3; box-shadow:none; }
+.formDetailShell { padding-bottom:64px; }
+.medicationForm { display:grid; gap:14px; }
+.formSectionCard { padding:19px; border-radius:23px; background:#fff; box-shadow:0 9px 24px rgba(65,58,48,.05); }
+.medicationForm label { display:grid; gap:7px; }
+.medicationForm label > span { color:#5f5a52; font-size:12px; font-weight:700; }
+.medicationForm input,.medicationForm textarea { width:100%; min-height:48px; padding:12px 14px; border:1px solid #ddd6cc; border-radius:15px; background:#fff; color:var(--ink); font:inherit; outline:none; }
+.medicationForm textarea { min-height:88px; resize:vertical; }
+.medicationForm input:focus,.medicationForm textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(206,117,92,.12); }
+.splitFields { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.timeFields { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px; }
+.standaloneLabel { margin:0; }
+
+@media (min-width:481px) { body { padding:24px 0; }.appShell,.detailShell { min-height:calc(100dvh - 48px); border-radius:34px; overflow:hidden; }.authShell { padding:24px; }.petOnboardingShell { place-items:start center; } }
 @media (max-width:480px) { .authShell { padding:0; background:var(--paper); }.authCard { min-height:100dvh; border-radius:0; box-shadow:none; padding:32px 20px; }.petOnboardingCard { min-height:100dvh; } }
-@media (max-width:360px) { .content { padding-inline:15px; }.petCarousel { margin-inline:-15px; }.petSlide { padding-inline:15px; }.petOverview { grid-template-columns:68px minmax(0,1fr) 68px; gap:6px; }.sectionCard { min-height:140px; padding:14px; }.bottomNav { padding-inline:2px; }.bottomNav button { font-size:8px; }.speciesGrid { grid-template-columns:1fr; }.authIntro h1,.wizardStep h1 { font-size:32px; } }
+@media (max-width:360px) { .content { padding-inline:15px; }.petCarousel { margin-inline:-15px; }.petSlide { padding-inline:15px; }.petOverview { grid-template-columns:68px minmax(0,1fr) 68px; gap:6px; }.sectionCard { min-height:140px; padding:14px; }.bottomNav { padding-inline:2px; }.bottomNav button { font-size:8px; }.speciesGrid { grid-template-columns:1fr; }.authIntro h1,.wizardStep h1 { font-size:32px; }.timeFields,.splitFields { grid-template-columns:1fr; } }
