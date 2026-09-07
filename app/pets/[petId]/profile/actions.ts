@@ -49,10 +49,23 @@ export async function updatePetPhoto(petId: string, formData: FormData) {
     upsert: false,
   });
 
-  if (uploadError) profileRedirect(petId, "error", "Не удалось загрузить фотографию");
+  if (uploadError) {
+    console.error("Pet avatar upload failed", {
+      message: uploadError.message,
+      name: uploadError.name,
+      statusCode: "statusCode" in uploadError ? uploadError.statusCode : undefined,
+      petId,
+      mimeType: avatar.type,
+      size: avatar.size,
+    });
+    profileRedirect(petId, "error", `Не удалось загрузить фотографию: ${uploadError.message}`);
+  }
 
   const { error: updateError } = await supabase.from("pets").update({ avatar_url: avatarPath }).eq("id", petId);
-  if (updateError) profileRedirect(petId, "error", "Фото загружено, но профиль не обновился");
+  if (updateError) {
+    console.error("Pet avatar profile update failed", { message: updateError.message, petId });
+    profileRedirect(petId, "error", "Фото загружено, но профиль не обновился");
+  }
 
   profileRedirect(petId, "saved", "1");
 }
