@@ -47,10 +47,10 @@ export type PetViewModel = {
   reminderError: boolean;
 };
 
-const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" | "health" }[] = [
+const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" | "health" | "nutrition" }[] = [
   { title: "Здоровье", description: "Вакцинации, обработки, осмотры", icon: "heart", tone: "rose", route: "health" },
   { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac", route: "care" },
-  { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand" },
+  { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand", route: "nutrition" },
   { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue" },
   { title: "Активность", description: "Прогулки, тренировки", icon: "paw", tone: "green" },
   { title: "Профиль", description: "Фото, дата рождения, вес", icon: "settings", tone: "gray", route: "profile" },
@@ -96,7 +96,7 @@ function SectionCard({ section, petId }: { section: (typeof sections)[number]; p
 function Reminder({ pet }: { pet: PetViewModel }) {
   if (pet.reminderError) return <div className="reminder" role="status"><span>Не удалось загрузить напоминание. Обновите страницу.</span></div>;
   const reminder = pet.reminder;
-  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name="syringe"/></span><span><small>{reminder.kind==='health'?'Здоровье':'Следующий приём'} · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
+  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name={reminder.kind==='feeding'?'bowl':'syringe'}/></span><span><small>{reminder.kind==='health'?'Здоровье':reminder.kind==='feeding'?'Следующее кормление':'Следующий приём'} · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
   return <Link className="reminder" href={`/pets/${pet.id}/health/new`}><span className="reminderIcon"><Icon name="syringe"/></span><span><small>Следующее напоминание</small><strong>Пока ничего не запланировано</strong><small>Добавить событие здоровья</small></span><b>›</b></Link>;
 }
 

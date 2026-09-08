@@ -1,5 +1,6 @@
 import { getReminders } from "@/lib/medications/reminders";
 import { getHealthReminders } from "@/lib/health/reminders";
+import { feedingReminders } from "@/lib/feeding/server";
 import { redirect } from "next/navigation";
 import { PetfolioHome, type PetViewModel } from "@/app/components/petfolio-home";
 import { createClient } from "@/lib/supabase/server";
@@ -79,11 +80,15 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
   }
 
   const {data:profile,error:profileError}=await supabase.from('profiles').select('timezone').eq('id',userId).maybeSingle();
-  const [reminders,healthReminders]=await Promise.all([
+  const [reminders,healthReminders,foodReminders]=await Promise.all([
     getReminders(supabase,petIds),
     profileError?Promise.resolve(null):getHealthReminders(supabase,petIds,profile?.timezone??'Europe/Moscow'),
+    feedingReminders(supabase,petIds),
   ]);
   if(reminders&&healthReminders)for(const [petId,event] of healthReminders) {
+    if(!reminders.has(petId)||Date.parse(event.instant)<Date.parse(reminders.get(petId)!.instant))reminders.set(petId,event);
+  }
+  if(reminders&&foodReminders)for(const [petId,event] of foodReminders) {
     if(!reminders.has(petId)||Date.parse(event.instant)<Date.parse(reminders.get(petId)!.instant))reminders.set(petId,event);
   }
 
@@ -101,7 +106,7 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
       name: pet.name,
       image,
       reminder: reminders?.get(pet.id) ?? null,
-      reminderError: reminders === null || healthReminders === null,
+      reminderError: reminders === null || healthReminders === null || foodReminders === null,
       stats: [
         [weight ? `${weight.toLocaleString("ru-RU", { maximumFractionDigits: 3 })} кг` : "—", "Вес"],
         [formatAge(pet.birth_date), "Возраст"],

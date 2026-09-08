@@ -1,5 +1,6 @@
 import type { HealthEvent } from '@/lib/health/types';
 import type { StockItem,StockMovement } from '@/lib/stock/types';
+import type { FeedingPlan,FeedingLog } from '@/lib/feeding/types';
 export type Json =
   | string
   | number
@@ -14,6 +15,8 @@ export type Database = {
   }
   public: {
     Tables: {
+      feeding_plans: {Row:FeedingPlan;Insert:never;Update:never;Relationships:[]}
+      feeding_logs: {Row:FeedingLog;Insert:never;Update:never;Relationships:[]}
       stock_items: {Row:StockItem;Insert:never;Update:never;Relationships:[]}
       stock_movements: {Row:StockMovement;Insert:never;Update:never;Relationships:[]}
       health_events: {
@@ -438,6 +441,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      feeding_action: {Args:{p_action:string;p_pet:string;p_plan:string;p_request:string;p_values:Json};Returns:string}
       stock_action: {
         Args: {p_action:string;p_household:string;p_item:string;p_request:string;p_values:Json}
         Returns: string
