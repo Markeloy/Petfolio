@@ -435,6 +435,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      family_action: {
+        Args: {p_action:string;p_household?:string;p_token?:string;p_target?:string;p_name?:string}
+        Returns: Json
+      }
       record_health_followup: {
         Args: {p_source_id:string;p_expected_updated_at:string;p_new_id:string;p_values:Json}
         Returns: string

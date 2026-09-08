@@ -3,6 +3,7 @@ import { getHealthReminders } from "@/lib/health/reminders";
 import { redirect } from "next/navigation";
 import { PetfolioHome, type PetViewModel } from "@/app/components/petfolio-home";
 import { createClient } from "@/lib/supabase/server";
+import { familyMemberships } from "@/lib/family/server";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ function formatAge(birthDate: string | null) {
 export default async function HomePage({searchParams}: {searchParams: Promise<{tab?: string}>}) {
   const {tab} = await searchParams;
   if (tab === 'calendar') redirect('/calendar');
+  if (tab === 'family') redirect('/family');
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
@@ -44,16 +46,8 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
     redirect("/login");
   }
 
-  const { data: membership, error: membershipError } = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", userId)
-    .limit(1)
-    .maybeSingle();
-
-  if (membershipError || !membership) {
-    redirect("/auth/error?reason=household");
-  }
+  const {active:membership} = await familyMemberships(supabase,userId);
+  if (!membership) redirect('/family');
 
   const { data: petRows, error: petsError } = await supabase
     .from("pets")
@@ -114,6 +108,6 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
     };
   }));
 
-  const initialTab = tab === 'stock' || tab === 'family' || tab === 'more' ? tab : 'home';
-  return <PetfolioHome key={initialTab} pets={pets} initialTab={initialTab} />;
+  const initialTab = tab === 'stock' || tab === 'more' ? tab : 'home';
+  return <PetfolioHome key={`${membership.household_id}:${initialTab}`} pets={pets} initialTab={initialTab} />;
 }

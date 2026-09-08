@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { familyMemberships } from "@/lib/family/server";
 
 const speciesValues = new Set(["dog", "cat", "bird", "rodent", "reptile", "other"]);
 const sexValues = new Set(["male", "female", "unknown"]);
@@ -27,14 +28,8 @@ export async function createPet(formData: FormData) {
 
   if (claimsError || typeof userId !== "string") redirect("/login");
 
-  const { data: membership, error: membershipError } = await supabase
-    .from("household_members")
-    .select("household_id")
-    .eq("user_id", userId)
-    .limit(1)
-    .maybeSingle();
-
-  if (membershipError || !membership) redirect("/auth/error?reason=household");
+  const {active:membership}=await familyMemberships(supabase,userId);
+  if (!membership) redirect('/family');
 
   const name = String(formData.get("name") ?? "").trim();
   const speciesRaw = String(formData.get("species") ?? "other");

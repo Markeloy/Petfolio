@@ -15,6 +15,7 @@ export default async function AddPetPage({ searchParams }: { searchParams: Promi
   return <main className="authShell petOnboardingShell">
     <section className="authCard petOnboardingCard">
       <div className="onboardingTop"><p className="authBrand">Petfolio</p><Link href="/" aria-label="Закрыть">×</Link></div>
+      <p><Link href="/family">Есть приглашение? Присоединиться к семье</Link></p>
       <PetWizard error={error} />
     </section>
   </main>;

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { familyMemberships } from '@/lib/family/server';
 import { calendarDate, monthDays } from '@/lib/calendar/dates';
 import { allPages, calendarEntries } from '@/lib/calendar/data';
 import { addDays, localDate } from '@/lib/medications/schedule';
@@ -16,8 +17,8 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
   const {data: claims, error: authError} = await client.auth.getClaims();
   const userId = claims?.claims?.sub;
   if (authError || typeof userId !== 'string') redirect('/login');
-  const {data: membership, error: membershipError} = await client.from('household_members').select('household_id').eq('user_id', userId).limit(1).maybeSingle();
-  if (membershipError || !membership) redirect('/auth/error?reason=household');
+  const {active:membership}=await familyMemberships(client,userId);
+  if (!membership) redirect('/family');
   const [pets, profile] = await Promise.all([
     allPages((from, to) => client.from('pets').select('id,name').eq('household_id', membership.household_id).is('archived_at', null).order('id').range(from, to)),
     client.from('profiles').select('timezone').eq('id', userId).maybeSingle(),

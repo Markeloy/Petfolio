@@ -117,7 +117,7 @@ const placeholderCopy: Record<"calendar" | "stock" | "family", { title: string; 
 };
 
 export function BottomNav({ active, onChange }: { active: NavKey; onChange?: (tab: NavKey) => void }) {
-  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => item.key === 'calendar' || !onChange ? <Link href={item.key === 'calendar' ? '/calendar' : `/?tab=${item.key}`} className={active === item.key ? 'active' : ''} key={item.key} aria-current={active === item.key ? 'page' : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></Link> : <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
+  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => item.key === 'calendar' || item.key === 'family' || !onChange ? <Link href={item.key === 'calendar' ? '/calendar' : item.key === 'family' ? '/family' : `/?tab=${item.key}`} className={active === item.key ? 'active' : ''} key={item.key} aria-current={active === item.key ? 'page' : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></Link> : <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
 }
 
 function HomeContent({ pets, activePetIndex, onActivePetIndexChange }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void }) {
