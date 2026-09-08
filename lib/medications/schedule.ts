@@ -42,6 +42,15 @@ export function occurrenceOn(schedule: Schedule, course: Course, date: string): 
 export function todayOccurrence(schedule: Schedule, course: Course, now = new Date()): string | null {
   return occurrenceOn(schedule, course, localDate(now, schedule.timezone));
 }
+// A viewer's day can overlap several dates in the schedule's timezone.
+export function occurrencesInDay(schedule: Schedule, course: Course, day: string, timezone: string): string[] {
+  const result: string[] = [];
+  for (let offset = -2; offset <= 2; offset++) {
+    const instant = occurrenceOn(schedule, course, addDays(day, offset));
+    if (instant && localDate(new Date(instant), timezone) === day) result.push(instant);
+  }
+  return result.sort();
+}
 export function doseKey(scheduleId: string, instant: string): string {
   return `${scheduleId}:${Date.parse(instant)}`;
 }

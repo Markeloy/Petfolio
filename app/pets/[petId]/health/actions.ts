@@ -5,7 +5,7 @@ import { healthContext } from '@/lib/health/server';
 import { localDate,wallToInstant } from '@/lib/medications/schedule';
 import { parseHealth,parseWeight } from '@/lib/health/validation';
 export type FormState={error:string};
-function invalidate(petId:string) {revalidatePath('/');revalidatePath(`/pets/${petId}/health`,'layout');}
+function invalidate(petId:string) {revalidatePath('/');revalidatePath('/calendar');revalidatePath(`/pets/${petId}/health`,'layout');}
 const conflict='Запись уже изменена другим участником. Обновите страницу перед повторным редактированием.';
 
 export async function saveHealth(petId:string,id:string,version:string|null,source:{id:string;version:string}|null,_state:FormState,form:FormData):Promise<FormState> {

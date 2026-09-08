@@ -19,7 +19,7 @@ export async function saveMedication(petId: string, medicationId: string, versio
     .eq('id',medicationId).eq('pet_id',petId).eq('updated_at',version).select('id').maybeSingle();
   if (error) return { error: 'Не удалось сохранить. Введённые данные остались в форме.' };
   if (!data) return { error: 'Курс уже изменён другим участником. Обновите страницу перед повторным редактированием.' };
-  revalidatePath('/'); revalidatePath(`/pets/${petId}/care`);
+  revalidatePath('/'); revalidatePath('/calendar'); revalidatePath(`/pets/${petId}/care`);
   revalidatePath(`/pets/${petId}/care/medications/${medicationId}`);
   redirect(`/pets/${petId}/care/medications/${medicationId}?edited=1`);
 }
@@ -41,7 +41,7 @@ export async function saveSchedule(petId: string, medicationId: string, schedule
   });
   if (error) return { error: error.code === '40001' ? 'Расписание уже изменилось. Обновите страницу.' :
     'Не удалось изменить расписание. Дата должна быть в будущем и в пределах курса; на неё не должно быть отметок или совпадающего расписания.' };
-  revalidatePath('/'); revalidatePath(`/pets/${petId}/care`);
+  revalidatePath('/'); revalidatePath('/calendar'); revalidatePath(`/pets/${petId}/care`);
   revalidatePath(`/pets/${petId}/care/medications/${medicationId}`);
   redirect(`/pets/${petId}/care/medications/${medicationId}?edited=1`);
 }

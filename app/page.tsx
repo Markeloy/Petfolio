@@ -33,7 +33,9 @@ function formatAge(birthDate: string | null) {
   return `${months} ${word}`;
 }
 
-export default async function HomePage() {
+export default async function HomePage({searchParams}: {searchParams: Promise<{tab?: string}>}) {
+  const {tab} = await searchParams;
+  if (tab === 'calendar') redirect('/calendar');
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
@@ -112,5 +114,6 @@ export default async function HomePage() {
     };
   }));
 
-  return <PetfolioHome pets={pets} />;
+  const initialTab = tab === 'stock' || tab === 'family' || tab === 'more' ? tab : 'home';
+  return <PetfolioHome key={initialTab} pets={pets} initialTab={initialTab} />;
 }

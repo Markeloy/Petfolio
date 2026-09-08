@@ -116,8 +116,8 @@ const placeholderCopy: Record<"calendar" | "stock" | "family", { title: string; 
   family: { title: "Семья", description: "Здесь будет совместный уход за питомцами" },
 };
 
-function BottomNav({ active, onChange }: { active: NavKey; onChange: (tab: NavKey) => void }) {
-  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
+export function BottomNav({ active, onChange }: { active: NavKey; onChange?: (tab: NavKey) => void }) {
+  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => item.key === 'calendar' || !onChange ? <Link href={item.key === 'calendar' ? '/calendar' : `/?tab=${item.key}`} className={active === item.key ? 'active' : ''} key={item.key} aria-current={active === item.key ? 'page' : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></Link> : <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
 }
 
 function HomeContent({ pets, activePetIndex, onActivePetIndexChange }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void }) {
@@ -134,8 +134,8 @@ function MoreScreen() {
   return <><TopBar/><section className="placeholderScreen moreScreen"><span className="placeholderIcon"><Icon name="more" size={30}/></span><h1>Ещё</h1><p>Здесь будут профиль, настройки, уведомления, экспорт и подписка Petfolio.</p><form action="/auth/signout" method="post"><button className="secondaryAction" type="submit">Выйти из аккаунта</button></form></section></>;
 }
 
-export function PetfolioHome({ pets }: { pets: PetViewModel[] }) {
-  const [activeTab, setActiveTab] = useState<NavKey>("home");
+export function PetfolioHome({ pets, initialTab = 'home' }: { pets: PetViewModel[]; initialTab?: NavKey }) {
+  const [activeTab, setActiveTab] = useState<NavKey>(initialTab);
   const [activePetIndex, setActivePetIndex] = useState(0);
 
   return <main className="appShell"><RefreshOnFocus/><div className="content">{activeTab === "home" ? <HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={setActivePetIndex}/> : activeTab === "more" ? <MoreScreen/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;

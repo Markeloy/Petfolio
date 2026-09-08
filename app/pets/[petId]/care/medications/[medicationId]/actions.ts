@@ -30,6 +30,7 @@ export async function setMedicationStatus(petId: string, medicationId: string, f
   }
 
   revalidatePath(path);
+  revalidatePath('/calendar');
   revalidatePath(`/pets/${petId}/care`);
   revalidatePath('/');
   redirect(`${path}?course=${status}`);
@@ -57,6 +58,7 @@ export async function recordDose(petId: string, medicationId: string, scheduleId
   });
   if (error || !data?.[0]?.id) fail('Не удалось сохранить отметку. Обновите страницу и попробуйте снова.');
   revalidatePath(path);
+  revalidatePath('/calendar');
   revalidatePath(`/pets/${petId}/care`);
   revalidatePath('/');
   redirect(`${path}?saved=${data![0].already_recorded ? 'existing' : 'new'}`);

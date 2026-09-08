@@ -49,6 +49,9 @@ h1 { margin:0; font-family:Georgia,serif; font-size:38px; font-weight:500; line-
 .bottomNav { position:sticky; left:0; right:0; bottom:0; display:grid; grid-template-columns:repeat(5,1fr); padding:12px 6px max(15px,env(safe-area-inset-bottom)); border-top:1px solid rgba(70,65,57,.08); background:rgba(255,255,255,.94); backdrop-filter:blur(18px); }
 .bottomNav button { display:flex; flex-direction:column; align-items:center; gap:4px; border:0; background:transparent; color:#9a968f; font-size:8.5px; }
 .bottomNav button.active { color:var(--accent); }.bottomNav button.active svg { fill:#f2d8d0; }
+.bottomNav>a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#9a968f; font-size:8.5px; text-decoration:none; }
+.bottomNav>a.active { color:var(--accent); }
+.bottomNav>a.active svg { fill:#f2d8d0; }
 button { cursor:pointer; -webkit-tap-highlight-color:transparent; } button:focus-visible, a:focus-visible { outline:3px solid rgba(206,117,92,.45); outline-offset:2px; }
 
 .authShell { min-height:100dvh; display:grid; place-items:center; padding:24px; background:#e8e4dd; }
