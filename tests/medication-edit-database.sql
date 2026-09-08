@@ -17,7 +17,7 @@ BEGIN
     VALUES(med,'08:00',effective-2,'Europe/Moscow',u) RETURNING id,updated_at INTO sched,v;
   PERFORM set_config('request.jwt.claim.sub',u::text,true);
   PERFORM set_config('role','authenticated',true);
-  SELECT * INTO dose FROM public.record_medication_dose(sched,now(),'given');
+  SELECT * INTO dose FROM public.record_medication_dose(sched,((effective-2)+'08:00'::time) AT TIME ZONE 'Europe/Moscow','given');
   SELECT updated_at INTO changed FROM public.medications WHERE id=med;
   UPDATE public.medications SET name='Edited course',dose_amount=2 WHERE id=med AND updated_at=changed;
   GET DIAGNOSTICS count_rows=ROW_COUNT;

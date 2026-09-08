@@ -57,7 +57,7 @@ const sections: { title: string; description: string; icon: IconName; tone: stri
 ];
 
 function TopBar() {
-  return <header className="topBar"><p className="eyebrow">Petfolio</p><button className="iconButton" type="button" aria-label="Уведомления"><Icon name="bell"/></button></header>;
+  return <header className="topBar"><p className="eyebrow">Petfolio</p><Link className="iconButton" href="/calendar" aria-label="События и напоминания"><Icon name="bell"/></Link></header>;
 }
 
 function PetProfile({ pet, showAdd }: { pet: PetViewModel; showAdd: boolean }) {
@@ -131,7 +131,7 @@ function PlaceholderScreen({ tab }: { tab: "calendar" | "stock" | "family" }) {
 }
 
 function MoreScreen() {
-  return <><TopBar/><section className="placeholderScreen moreScreen"><span className="placeholderIcon"><Icon name="more" size={30}/></span><h1>Ещё</h1><p>Здесь будут профиль, настройки, уведомления, экспорт и подписка Petfolio.</p><form action="/auth/signout" method="post"><button className="secondaryAction" type="submit">Выйти из аккаунта</button></form></section></>;
+  return <><TopBar/><section className="placeholderScreen moreScreen"><span className="placeholderIcon"><Icon name="more" size={30}/></span><h1>Ещё</h1><p>Управляйте аккаунтом и совместным уходом.</p><p><Link href="/settings">Настройки аккаунта →</Link></p><p><Link href="/family">Моя семья →</Link></p><p><Link href="/calendar">События и напоминания →</Link></p><form action="/auth/signout" method="post"><button className="secondaryAction" type="submit">Выйти из аккаунта</button></form></section></>;
 }
 
 export function PetfolioHome({ pets, initialTab = 'home' }: { pets: PetViewModel[]; initialTab?: NavKey }) {

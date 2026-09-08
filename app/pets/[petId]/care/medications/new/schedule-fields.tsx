@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-export function ScheduleFields() {
-  const [timezone, setTimezone] = useState("Europe/Moscow");
-  const [zones, setZones] = useState(["Europe/Moscow"]);
-  useEffect(() => {
-    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setZones([...new Set([detected, "Europe/Moscow", "UTC", ...Intl.supportedValuesOf("timeZone")])]);
-    setTimezone(detected);
-  }, []);
+export function ScheduleFields({initialTimezone,zones}:{initialTimezone:string;zones:string[]}) {
+  const [timezone, setTimezone] = useState(initialTimezone);
   return <div className="wizardFields">
     <fieldset className="scheduleDays">
       <legend>Дни приёма</legend>

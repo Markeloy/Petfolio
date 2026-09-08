@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ScheduleFields } from "./schedule-fields";
 import { SaveButton } from "./save-button";
 import { createMedication } from "./actions";
+import { localDate } from "@/lib/medications/schedule";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,11 @@ export default async function NewMedicationPage({ params, searchParams }: { para
   if (petError) redirect("/auth/error?reason=pet");
   if (!pet) notFound();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const {data:profile,error:profileError}=await supabase.from("profiles").select("timezone").eq("id",claimsData.claims.sub).maybeSingle();
+  if(profileError)throw new Error("Не удалось загрузить часовой пояс");
+  const timezone=profile?.timezone||"Europe/Moscow";
+  const today = localDate(new Date(),timezone);
+  const zones=[...new Set([timezone,"Europe/Moscow","UTC",...Intl.supportedValuesOf("timeZone")])];
   const action = createMedication.bind(null, petId);
 
   return <main className="detailShell formDetailShell">
@@ -66,7 +71,7 @@ export default async function NewMedicationPage({ params, searchParams }: { para
           <label><span>Приём 2</span><input name="time2" type="time" /></label>
           <label><span>Приём 3</span><input name="time3" type="time" /></label>
         </div>
-        <ScheduleFields />
+        <ScheduleFields initialTimezone={timezone} zones={zones}/>
       </section>
 
       <section className="formSectionCard">

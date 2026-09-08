@@ -2,6 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { updatePetPhoto } from "./actions";
+import {ProfileForm} from './profile-form';
+import {feedingContext as petContext} from '@/lib/feeding/server';
+import {localDate} from '@/lib/medications/schedule';
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +18,14 @@ export default async function PetProfilePage({ params, searchParams }: { params:
 
   const { data: pet, error: petError } = await supabase
     .from("pets")
-    .select("id, name, birth_date, breed, sex, color, avatar_url, microchip_number, passport_number, vet_clinic, veterinarian, notes")
+    .select("id, name, species, birth_date, breed, sex, color, avatar_url, microchip_number, passport_number, vet_clinic, veterinarian, notes, updated_at")
     .eq("id", petId)
     .is("archived_at", null)
     .maybeSingle();
 
   if (petError) redirect("/auth/error?reason=pet");
   if (!pet) notFound();
+  const {canEdit,timezone}=await petContext(petId);
 
   let image: string | null = null;
   if (pet.avatar_url) {
@@ -52,7 +56,7 @@ export default async function PetProfilePage({ params, searchParams }: { params:
 
     <form className="medicationForm" action={action}>
       {error ? <p className="formNotice errorNotice" role="alert">{error}</p> : null}
-      {saved ? <p className="formNotice successNotice">Фотография обновлена</p> : null}
+      {saved ? <p className="formNotice successNotice" role="status">{saved==='profile'?'Данные питомца сохранены':'Фотография обновлена'}</p> : null}
       <section className="formSectionCard">
         <label className="standaloneLabel"><span>Выберите фото</span><input name="avatar" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" required /><small className="fieldHint">JPG, PNG, WebP или фото с iPhone, до 8 МБ</small></label>
       </section>
@@ -72,6 +76,8 @@ export default async function PetProfilePage({ params, searchParams }: { params:
         <div><dt>Ветеринар</dt><dd>{pet.veterinarian ?? "Не указан"}</dd></div>
       </dl>
       {pet.notes ? <p className="profileNotes">{pet.notes}</p> : null}
+      <p><Link href={`/pets/${petId}/health/weight`}>Вес и история измерений →</Link></p>
+      {canEdit&&<details><summary>Изменить данные питомца</summary><ProfileForm pet={pet} today={localDate(new Date(),timezone)} key={pet.updated_at}/></details>}
     </section>
   </main>;
 }

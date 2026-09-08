@@ -3,6 +3,23 @@
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {revalidatePath} from 'next/cache';
+import {feedingContext as petContext} from '@/lib/feeding/server';
+import {parsePetProfile} from '@/lib/pets/validation';
+import {localDate} from '@/lib/medications/schedule';
+
+export async function savePetProfile(petId:string,version:string,_state:{error?:string},form:FormData):Promise<{error?:string}> {
+  const {client,canEdit,timezone}=await petContext(petId);
+  if(!canEdit)return {error:'У вас нет права изменять профиль'};
+  let values;
+  try {values=parsePetProfile(form,localDate(new Date(),timezone));}
+  catch(error){return {error:error instanceof Error?error.message:'Проверьте поля'};}
+  const {data,error}=await client.from('pets').update({...values,updated_at:new Date().toISOString()}).eq('id',petId).eq('updated_at',version).is('archived_at',null).select('id').maybeSingle();
+  if(error)return {error:'Не удалось сохранить профиль. Попробуйте снова'};
+  if(!data)return {error:'Профиль уже изменился. Обновите страницу, чтобы не затереть изменения семьи'};
+  revalidatePath('/','layout');
+  redirect(`/pets/${petId}/profile?saved=profile`);
+}
 
 const avatarMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
 const avatarExtensions: Record<string, string> = {

@@ -1,13 +1,19 @@
 'use client';
-import {useActionState,useState,useEffect} from 'react';
+import {useActionState,useState} from 'react';
 import {saveStock} from './actions';
 import {categories,units,type StockItem} from '@/lib/stock/types';
 export function StockForm({mode,household,itemId,requestId,item}:{mode:string;household:string;itemId:string;requestId:string;item?:StockItem}) {
   const [operation,setOperation]=useState({itemId,requestId});
-  const [state,submit,pending]=useActionState(saveStock.bind(null,mode,household,operation.itemId,operation.requestId,item?.updated_at??''),{});
   const [fields,setFields]=useState({name:item?.name??'',category:item?.category??'food',notes:item?.notes??'',threshold:String(item?.threshold??0),quantity:mode==='create'?'0':'',unit:'г',direction:'add',reason:''});
   const input=(key:keyof typeof fields)=>({value:fields[key],onChange:(event:React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setFields(old=>({...old,[key]:event.target.value}))});
-  useEffect(()=>{if(state.success&&mode==='adjust'){setFields(old=>({...old,quantity:'',reason:''}));setOperation(old=>({...old,requestId:crypto.randomUUID()}));}},[state,mode]);
+  const [state,submit,pending]=useActionState(async (previous:import('./actions').StockState,form:FormData)=>{
+    const result=await saveStock(mode,household,operation.itemId,operation.requestId,item?.updated_at??'',previous,form);
+    if(result.success&&mode==='adjust'){
+      setFields(old=>({...old,quantity:'',reason:''}));
+      setOperation(old=>({...old,requestId:crypto.randomUUID()}));
+    }
+    return result;
+  },{});
   return <form action={submit} className="stockForm">
     {(mode==='create'||mode==='edit')&&<><label>Название<input name="name" required maxLength={100} {...input('name')}/></label><label>Категория<select name="category" {...input('category')}>{Object.entries(categories).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
       {mode==='create'&&<><label>Единица измерения<select name="unit" {...input('unit')}>{units.map(unit=><option key={unit}>{unit}</option>)}</select></label><label>Начальный остаток<input name="quantity" inputMode="decimal" required {...input('quantity')}/></label></>}

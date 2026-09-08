@@ -4,7 +4,7 @@ DO $$
 DECLARE
   owner_id uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid();
   household uuid; pet uuid; medication uuid; schedule uuid; event_id uuid;
-  day date:=current_date; stamp timestamptz:=now();
+  day date:=(now() AT TIME ZONE 'Europe/Moscow')::date; stamp timestamptz;
 BEGIN
   INSERT INTO auth.users(id,raw_user_meta_data) VALUES(owner_id,'{"display_name":"Calendar test"}'),(outsider,'{"display_name":"Calendar outsider"}');
   SELECT household_id INTO household FROM public.household_members WHERE user_id=owner_id LIMIT 1;
@@ -13,6 +13,7 @@ BEGIN
   INSERT INTO public.medication_schedules(medication_id,scheduled_time,active_from,created_by) VALUES(medication,'12:00',day,owner_id) RETURNING id INTO schedule;
   PERFORM set_config('request.jwt.claim.sub',owner_id::text,true);
   PERFORM set_config('role','authenticated',true);
+  stamp:=(day+'12:00'::time) AT TIME ZONE 'Europe/Moscow';
   PERFORM public.record_medication_dose(schedule,stamp,'given');
   UPDATE public.medications SET status='completed' WHERE id=medication;
   INSERT INTO public.health_events(pet_id,kind,title,event_on,status,next_due_on,created_by)

@@ -4,6 +4,16 @@ CREATE ROLE authenticated NOLOGIN;
 CREATE SCHEMA auth;
 CREATE SCHEMA private;
 CREATE SCHEMA extensions;
+CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
+CREATE SCHEMA storage;
+CREATE TABLE storage.buckets(id text PRIMARY KEY,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+CREATE TABLE storage.objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),bucket_id text REFERENCES storage.buckets(id),name text,owner_id text,metadata jsonb,UNIQUE(bucket_id,name));
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+GRANT USAGE ON SCHEMA storage TO authenticated;
+GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated;
+CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$
+  SELECT (string_to_array(name,'/'))[1:array_length(string_to_array(name,'/'),1)-1];
+$$;
 GRANT USAGE ON SCHEMA public,auth,private TO authenticated;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
   SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
@@ -37,3 +47,9 @@ ALTER TABLE public.pets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY pets_read ON public.pets FOR SELECT TO authenticated USING(private.is_household_member(household_id));
 ALTER TABLE public.activity_log ENABLE ROW LEVEL SECURITY;
 CREATE POLICY audit_read ON public.activity_log FOR SELECT TO authenticated USING(private.is_household_member(household_id));
+CREATE TABLE public.weight_records(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),pet_id uuid REFERENCES public.pets(id),weight_kg numeric NOT NULL,measured_at timestamptz NOT NULL,notes text,created_by uuid DEFAULT auth.uid() REFERENCES auth.users(id),created_at timestamptz DEFAULT now());
+ALTER TABLE public.weight_records ENABLE ROW LEVEL SECURITY;
+GRANT SELECT,INSERT,UPDATE ON public.weight_records TO authenticated;
+CREATE POLICY weight_read ON public.weight_records FOR SELECT TO authenticated USING(EXISTS(SELECT 1 FROM public.pets p WHERE p.id=pet_id AND private.is_household_member(p.household_id)));
+CREATE POLICY weight_insert ON public.weight_records FOR INSERT TO authenticated WITH CHECK(created_by=auth.uid() AND EXISTS(SELECT 1 FROM public.pets p WHERE p.id=pet_id AND private.is_household_member(p.household_id)));
+CREATE POLICY weight_update ON public.weight_records FOR UPDATE TO authenticated USING(EXISTS(SELECT 1 FROM public.pets p WHERE p.id=pet_id AND private.is_household_member(p.household_id))) WITH CHECK(EXISTS(SELECT 1 FROM public.pets p WHERE p.id=pet_id AND private.is_household_member(p.household_id)));
