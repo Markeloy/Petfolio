@@ -1,4 +1,5 @@
 import type { HealthEvent } from '@/lib/health/types';
+import type { StockItem,StockMovement } from '@/lib/stock/types';
 export type Json =
   | string
   | number
@@ -13,6 +14,8 @@ export type Database = {
   }
   public: {
     Tables: {
+      stock_items: {Row:StockItem;Insert:never;Update:never;Relationships:[]}
+      stock_movements: {Row:StockMovement;Insert:never;Update:never;Relationships:[]}
       health_events: {
         Row: HealthEvent
         Insert: Pick<HealthEvent,'pet_id'|'kind'|'title'|'event_on'|'status'> & Partial<Omit<HealthEvent,'pet_id'|'kind'|'title'|'event_on'|'status'>>
@@ -435,6 +438,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      stock_action: {
+        Args: {p_action:string;p_household:string;p_item:string;p_request:string;p_values:Json}
+        Returns: string
+      }
       family_action: {
         Args: {p_action:string;p_household?:string;p_token?:string;p_target?:string;p_name?:string}
         Returns: Json

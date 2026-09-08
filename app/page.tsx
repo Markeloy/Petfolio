@@ -38,6 +38,7 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
   const {tab} = await searchParams;
   if (tab === 'calendar') redirect('/calendar');
   if (tab === 'family') redirect('/family');
+  if (tab === 'stock') redirect('/stock');
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
   const userId = claimsData?.claims?.sub;
@@ -108,6 +109,6 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
     };
   }));
 
-  const initialTab = tab === 'stock' || tab === 'more' ? tab : 'home';
+  const initialTab = tab === 'more' ? tab : 'home';
   return <PetfolioHome key={`${membership.household_id}:${initialTab}`} pets={pets} initialTab={initialTab} />;
 }
