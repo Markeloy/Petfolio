@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { familyMemberships } from '@/lib/family/server';
 import { feedingCalendar } from '@/lib/feeding/server';
+import { activityCalendar } from '@/lib/activity/server';
 import { calendarDate, monthDays } from '@/lib/calendar/dates';
 import { allPages, calendarEntries } from '@/lib/calendar/data';
 import { addDays, localDate } from '@/lib/medications/schedule';
@@ -32,7 +33,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
   const day = calendarDate(query.date, today);
   const petId = pets.some(p => p.id === query.pet) ? query.pet! : '';
   const selected = petId ? pets.filter(p => p.id === petId) : pets;
-  const entrySets=await Promise.all([calendarEntries(client, selected.map(p => p.id), day, timezone, now),feedingCalendar(client, selected.map(p=>p.id),day,timezone,now)]);
+  const entrySets=await Promise.all([calendarEntries(client, selected.map(p => p.id), day, timezone, now),feedingCalendar(client, selected.map(p=>p.id),day,timezone,now),activityCalendar(client,selected.map(p=>p.id),day,timezone)]);
   const entries=entrySets.flat().sort((a,b)=>(a.instant??'').localeCompare(b.instant??'')||a.title.localeCompare(b.title,'ru')||a.id.localeCompare(b.id));
   const href = (date: string) => `/calendar?${new URLSearchParams({date, ...(petId ? {pet: petId} : {})})}`;
   const monthStart = `${day.slice(0,7)}-01`;
@@ -40,7 +41,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
   const next = addDays(monthStart, 32).slice(0,7) + '-01';
   const monthLabel = new Intl.DateTimeFormat('ru-RU', {month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(`${monthStart}T12:00:00Z`));
   return <main className="appShell"><RefreshOnFocus/><div className="content calendarContent">
-    <header><p className="eyebrow">Petfolio</p><h1>Календарь</h1><p>Лекарства, кормления и здоровье питомцев</p></header>
+    <header><p className="eyebrow">Petfolio</p><h1>Календарь</h1><p>Здоровье, уход, питание и активность питомцев</p></header>
     <form className="calendarFilters" action="/calendar" key={`${day}:${petId}`}>
       <label>Питомец<select name="pet" defaultValue={petId}><option value="">Все питомцы</option>{pets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
       <label>Дата<input name="date" type="date" required min="1900-01-01" max="2100-12-31" defaultValue={day} key={day}/></label>
