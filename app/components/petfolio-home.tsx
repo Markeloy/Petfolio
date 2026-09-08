@@ -47,11 +47,11 @@ export type PetViewModel = {
   reminderError: boolean;
 };
 
-const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" | "health" | "nutrition" }[] = [
+const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" | "health" | "nutrition" | "documents" }[] = [
   { title: "Здоровье", description: "Вакцинации, обработки, осмотры", icon: "heart", tone: "rose", route: "health" },
   { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac", route: "care" },
   { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand", route: "nutrition" },
-  { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue" },
+  { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue", route: "documents" },
   { title: "Активность", description: "Прогулки, тренировки", icon: "paw", tone: "green" },
   { title: "Профиль", description: "Фото, дата рождения, вес", icon: "settings", tone: "gray", route: "profile" },
 ];
