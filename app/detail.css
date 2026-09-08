@@ -20,3 +20,21 @@
 .courseActions { display: grid; gap: 10px; margin-top: 22px; }
 .courseActions form { margin: 0; }
 .courseActions button:disabled { opacity: .6; cursor: wait; }
+
+.healthShell { font-size:16px; line-height:1.5; }
+.healthShell h1 { overflow-wrap:anywhere; }
+.healthShell h2 { font-size:24px; margin:12px 0; }
+.healthShell h3 { font-size:18px; margin:8px 0; }
+.healthShell small,.healthShell .formSectionHint,.healthShell .wizardFields label > span { font-size:14px; }
+.healthShell .medicationCard p { font-size:16px; }
+.healthShell .inlineAction { display:flex; align-items:center; justify-content:center; text-align:center; text-decoration:none; }
+.healthTabs,.healthActions { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.healthTabs a { padding:10px 16px; background:#fff; border:1px solid #ddd6cc; border-radius:14px; color:var(--ink); text-decoration:none; }
+.healthActions > a { flex:1; min-width:160px; }
+.healthForm { display:grid; gap:16px; padding:20px; margin:20px 0; background:#fff; border-radius:20px; }
+.healthFilters { display:grid; gap:12px; margin:16px 0; }
+.healthNotes { white-space:pre-wrap; overflow-wrap:anywhere; }
+.healthAudit { padding-left:20px; }
+.healthAudit li { margin:12px 0; }
+.archiveControl { margin-top:16px; }
+.healthShell button:disabled { opacity:.5; cursor:wait; }

@@ -1,4 +1,5 @@
 import { getReminders } from "@/lib/medications/reminders";
+import { getHealthReminders } from "@/lib/health/reminders";
 import { redirect } from "next/navigation";
 import { PetfolioHome, type PetViewModel } from "@/app/components/petfolio-home";
 import { createClient } from "@/lib/supabase/server";
@@ -68,18 +69,26 @@ export default async function HomePage() {
   }
 
   const petIds = petRows.map((pet) => pet.id);
-  const { data: weightRows } = await supabase
-    .from("weight_records")
-    .select("pet_id, weight_kg, measured_at")
-    .in("pet_id", petIds)
-    .order("measured_at", { ascending: false });
+  const weightResults = await Promise.all(petIds.map(petId=>supabase
+    .from("weight_records").select("pet_id, weight_kg, measured_at").eq("pet_id",petId)
+    .is("archived_at",null).order("measured_at",{ascending:false})
+    .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1)));
+  if(weightResults.some(r=>r.error))throw new Error('Не удалось загрузить вес');
+  const weightRows = weightResults.flatMap(r=>r.data??[]);
 
   const latestWeights = new Map<string, number>();
   for (const row of weightRows ?? []) {
     if (!latestWeights.has(row.pet_id)) latestWeights.set(row.pet_id, Number(row.weight_kg));
   }
 
-  const reminders = await getReminders(supabase, petIds);
+  const {data:profile,error:profileError}=await supabase.from('profiles').select('timezone').eq('id',userId).maybeSingle();
+  const [reminders,healthReminders]=await Promise.all([
+    getReminders(supabase,petIds),
+    profileError?Promise.resolve(null):getHealthReminders(supabase,petIds,profile?.timezone??'Europe/Moscow'),
+  ]);
+  if(reminders&&healthReminders)for(const [petId,event] of healthReminders) {
+    if(!reminders.has(petId)||Date.parse(event.instant)<Date.parse(reminders.get(petId)!.instant))reminders.set(petId,event);
+  }
 
   const pets: PetViewModel[] = await Promise.all(petRows.map(async (pet) => {
     const weight = latestWeights.get(pet.id);
@@ -95,7 +104,7 @@ export default async function HomePage() {
       name: pet.name,
       image,
       reminder: reminders?.get(pet.id) ?? null,
-      reminderError: reminders === null,
+      reminderError: reminders === null || healthReminders === null,
       stats: [
         [weight ? `${weight.toLocaleString("ru-RU", { maximumFractionDigits: 3 })} кг` : "—", "Вес"],
         [formatAge(pet.birth_date), "Возраст"],

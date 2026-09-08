@@ -1,3 +1,4 @@
+import type { HealthEvent } from '@/lib/health/types';
 export type Json =
   | string
   | number
@@ -12,6 +13,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      health_events: {
+        Row: HealthEvent
+        Insert: Pick<HealthEvent,'pet_id'|'kind'|'title'|'event_on'|'status'> & Partial<Omit<HealthEvent,'pet_id'|'kind'|'title'|'event_on'|'status'>>
+        Update: Partial<HealthEvent>
+        Relationships: [{foreignKeyName:'health_events_pet_id_fkey';columns:['pet_id'];isOneToOne:false;referencedRelation:'pets';referencedColumns:['id']}]
+      }
       activity_log: {
         Row: {
           action: string
@@ -378,6 +385,9 @@ export type Database = {
       }
       weight_records: {
         Row: {
+          updated_at: string
+          updated_by: string | null
+          archived_at: string | null
           created_at: string
           created_by: string
           id: string
@@ -387,6 +397,9 @@ export type Database = {
           weight_kg: number
         }
         Insert: {
+          updated_at?: string
+          updated_by?: string | null
+          archived_at?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -396,6 +409,9 @@ export type Database = {
           weight_kg: number
         }
         Update: {
+          updated_at?: string
+          updated_by?: string | null
+          archived_at?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -419,6 +435,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      record_health_followup: {
+        Args: {p_source_id:string;p_expected_updated_at:string;p_new_id:string;p_values:Json}
+        Returns: string
+      }
       revise_medication_schedule: {
         Args: { p_schedule_id: string; p_expected_updated_at: string; p_effective_on: string; p_time: string; p_days: number[] }
         Returns: string

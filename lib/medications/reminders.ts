@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/database.types';
 import { doseKey, formatDose, formatMoment, nextOccurrence } from './schedule';
-export type ReminderView = { href: string; name: string; dose: string; when: string; instant: string };
+export type ReminderView = { href: string; name: string; dose: string; when: string; instant: string; kind?: 'health' };
 export async function getReminders(client: SupabaseClient<Database>, petIds: string[], now = new Date()) {
   const { data: medications, error } = await client.from('medications').select('*,medication_schedules(*)').in('pet_id', petIds).eq('status', 'active');
   if (error) return null;
