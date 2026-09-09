@@ -67,9 +67,10 @@ export function nextOccurrence(schedule: Schedule, course: Course, recorded: Set
   }
   return null;
 }
-export function formatMoment(instant: string, timezone: string): string {
-  return new Intl.DateTimeFormat('ru-RU', { timeZone: timezone, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(instant));
+export function formatMoment(instant: string, timezone: string,locale='ru-RU'): string {
+  return new Intl.DateTimeFormat(locale, { timeZone: timezone, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(instant));
 }
-export function formatDose(amount: number | null, unit: string | null): string {
-  return amount === null ? 'Дозировка не указана' : `${amount.toLocaleString('ru-RU', { maximumFractionDigits: 3 })}${unit ? ` ${unit}` : ''}`;
+export function formatDose(amount: number | null, unit: string | null,locale='ru-RU'): string {
+  return amount === null ? (locale.startsWith('en')?'Dose not specified':'Дозировка не указана') : `${amount.toLocaleString(locale, { maximumFractionDigits: 3 })}${unit ? ` ${unitLabel(unit,locale)}` : ''}`;
 }
+import {unitLabel} from '../i18n/units.ts';

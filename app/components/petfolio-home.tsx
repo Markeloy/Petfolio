@@ -1,9 +1,10 @@
 "use client";
+import {useT} from "@/lib/i18n/client";
 
-import Link from "next/link";
+import Link, {useLinkStatus} from "next/link";
 import type { ReminderView } from "@/lib/medications/reminders";
 import { RefreshOnFocus } from "./refresh-on-focus";
-import { useRef, useState, type ReactNode, type UIEvent } from "react";
+import {useSyncExternalStore, type ReactNode} from "react";
 
 type IconName =
   | "bell"
@@ -49,7 +50,7 @@ export type PetViewModel = {
 
 const sections: { title: string; description: string; icon: IconName; tone: string; route?: "care" | "profile" | "health" | "nutrition" | "documents" | "activity" }[] = [
   { title: "Здоровье", description: "Вакцинации, обработки, осмотры", icon: "heart", tone: "rose", route: "health" },
-  { title: "Уход", description: "Лекарства, груминг, процедуры", icon: "calendar", tone: "lilac", route: "care" },
+  { title: "Уход", description: "Лекарства, расписание, приёмы", icon: "calendar", tone: "lilac", route: "care" },
   { title: "Питание", description: "Рацион, нормы, корм", icon: "bowl", tone: "sand", route: "nutrition" },
   { title: "Документы", description: "Ветпаспорт, справки, анализы", icon: "file", tone: "blue", route: "documents" },
   { title: "Активность", description: "Прогулки, тренировки", icon: "paw", tone: "green", route: "activity" },
@@ -57,47 +58,43 @@ const sections: { title: string; description: string; icon: IconName; tone: stri
 ];
 
 function TopBar() {
-  return <header className="topBar"><p className="eyebrow">Petfolio</p><Link className="iconButton" href="/calendar" aria-label="События и напоминания"><Icon name="bell"/></Link></header>;
+  const t=useT();
+  return <header className="topBar"><p className="eyebrow">Petfolio</p><Link className="iconButton" href="/calendar" aria-label={t("События и напоминания")}><Icon name="bell"/></Link></header>;
 }
 
 function PetProfile({ pet, showAdd }: { pet: PetViewModel; showAdd: boolean }) {
+  const t=useT();
   return <article className="petSlide" aria-label={pet.name}>
     <div className="petHeading"><h1>{pet.name}</h1></div>
     <div className="petOverview">
-      <div className="stats">{pet.stats.map(([value, label]) => <div className="stat" key={label}><strong>{value}</strong><span>{label}</span></div>)}</div>
-      <div className="petPhoto">{pet.image ? <img src={pet.image} alt={pet.name}/> : <span className="petPhotoPlaceholder" aria-label="Фото питомца пока не добавлено"><Icon name="paw" size={54}/></span>}</div>
-      {showAdd ? <Link className="addPet" href="/onboarding/pet" aria-label="Добавить питомца"><span>＋</span><small>Добавить<br/>питомца</small></Link> : <div aria-hidden="true" />}
+      <div className="stats">{pet.stats.map(([value, label]) => <div className="stat" key={label}><strong>{value}</strong><span>{t(label)}</span></div>)}</div>
+      <div className="petPhoto">{pet.image ? <img src={pet.image} alt={pet.name}/> : <span className="petPhotoPlaceholder" aria-label={t("Фото питомца пока не добавлено")}><Icon name="paw" size={54}/></span>}</div>
+      {showAdd ? <Link className="addPet" href="/onboarding/pet" aria-label={t("Добавить питомца")}><span>＋</span><small>{t("Добавить")}<br/>{t("питомца")}</small></Link> : <div aria-hidden="true" />}
     </div>
   </article>;
 }
 
-function PetCarousel({ pets, activeIndex, onActiveIndexChange }: { pets: PetViewModel[]; activeIndex: number; onActiveIndexChange: (index: number) => void }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-
-  function handleScroll(event: UIEvent<HTMLDivElement>) {
-    const width = event.currentTarget.clientWidth;
-    if (!width) return;
-    const nextIndex = Math.min(pets.length - 1, Math.max(0, Math.round(event.currentTarget.scrollLeft / width)));
-    if (nextIndex !== activeIndex) onActiveIndexChange(nextIndex);
-  }
-
-  return <section className="petCarousel" aria-label="Профили питомцев">
-    <div className="petTrack" ref={trackRef} onScroll={handleScroll}>{pets.map((pet, index) => <PetProfile key={pet.id} pet={pet} showAdd={index === pets.length - 1}/>)}</div>
-    <div className="carouselStatus" aria-hidden="true">{pets.map((pet, index) => <i className={index === activeIndex ? "active" : ""} key={pet.id}/>)}</div>
+function PetSelector({pets,activeIndex,onActiveIndexChange}:{pets:PetViewModel[];activeIndex:number;onActiveIndexChange:(index:number)=>void}){
+  const t=useT();
+  return <section aria-label={t('Профили питомцев')}>
+    {pets.length>1&&<div className="petSelector">{pets.map((pet,index)=><button type="button" key={pet.id} aria-pressed={activeIndex===index} onClick={()=>onActiveIndexChange(index)}>{pet.name}</button>)}</div>}
+    <PetProfile pet={pets[activeIndex]??pets[0]} showAdd/>
   </section>;
 }
 
 function SectionCard({ section, petId }: { section: (typeof sections)[number]; petId: string }) {
-  const content = <><span className="cardArrow">↗</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{section.title}</strong><small>{section.description}</small></>;
-  if (section.route) return <Link className={`sectionCard ${section.tone}`} href={`/pets/${petId}/${section.route}`}>{content}</Link>;
+  const t=useT();
+  const content = <><span className="cardArrow">↗</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{t(section.title)}</strong><small>{t(section.description)}</small></>;
+  if (section.route) return <Link prefetch={true} className={`sectionCard ${section.tone}`} href={`/pets/${petId}/${section.route}`}>{content}<NavigationHint/></Link>;
   return <button className={`sectionCard ${section.tone}`} type="button">{content}</button>;
 }
 
 function Reminder({ pet }: { pet: PetViewModel }) {
-  if (pet.reminderError) return <div className="reminder" role="status"><span>Не удалось загрузить напоминание. Обновите страницу.</span></div>;
+  const t=useT();
+  if (pet.reminderError) return <div className="reminder" role="status"><span>{t("Не удалось загрузить напоминание. Обновите страницу.")}</span></div>;
   const reminder = pet.reminder;
-  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name={reminder.kind==='feeding'?'bowl':reminder.kind==='activity'?'paw':'syringe'}/></span><span><small>{reminder.kind==='health'?'Здоровье':reminder.kind==='feeding'?'Следующее кормление':reminder.kind==='activity'?'Активность':'Следующий приём'} · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
-  return <Link className="reminder" href={`/pets/${pet.id}/health/new`}><span className="reminderIcon"><Icon name="syringe"/></span><span><small>Следующее напоминание</small><strong>Пока ничего не запланировано</strong><small>Добавить событие здоровья</small></span><b>›</b></Link>;
+  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name={reminder.kind==='feeding'?'bowl':reminder.kind==='activity'?'paw':'syringe'}/></span><span><small>{reminder.kind==='health'?t("Здоровье"):reminder.kind==='feeding'?t("Следующее кормление"):reminder.kind==='activity'?t("Активность"):t("Следующий приём")} · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
+  return <Link className="reminder" href={`/pets/${pet.id}/health/new`}><span className="reminderIcon"><Icon name="syringe"/></span><span><small>{t("Следующее напоминание")}</small><strong>{t("Пока ничего не запланировано")}</strong><small>{t("Добавить событие здоровья")}</small></span><b>›</b></Link>;
 }
 
 type NavKey = "home" | "calendar" | "stock" | "family" | "more";
@@ -110,33 +107,39 @@ const navItems: { key: NavKey; label: string; icon: IconName }[] = [
   { key: "more", label: "Ещё", icon: "more" },
 ];
 
-const placeholderCopy: Record<"calendar" | "stock" | "family", { title: string; description: string }> = {
-  calendar: { title: "Календарь", description: "Здесь появятся события всех питомцев" },
-  stock: { title: "Запасы", description: "Здесь появятся запасы и расходники" },
-  family: { title: "Семья", description: "Здесь будет совместный уход за питомцами" },
-};
-
-export function BottomNav({ active, onChange }: { active: NavKey; onChange?: (tab: NavKey) => void }) {
-  return <nav className="bottomNav" aria-label="Основная навигация">{navItems.map((item) => ['calendar','family','stock'].includes(item.key) || !onChange ? <Link href={['calendar','family','stock'].includes(item.key) ? `/${item.key}` : `/?tab=${item.key}`} className={active === item.key ? 'active' : ''} key={item.key} aria-current={active === item.key ? 'page' : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></Link> : <button className={active === item.key ? "active" : ""} type="button" key={item.key} onClick={() => onChange(item.key)} aria-current={active === item.key ? "page" : undefined}><Icon name={item.icon} size={22}/><span>{item.label}</span></button>)}</nav>;
+function NavigationHint(){
+  const {pending}=useLinkStatus();
+  return pending?<span className="navigationHint" aria-hidden="true"/>:null;
+}
+export function BottomNav({active}:{active:NavKey}){
+  const t=useT();
+  return <nav className="bottomNav" aria-label={t('Основная навигация')}>{navItems.map(item=><Link prefetch={true} href={item.key==='home'?'/':item.key==='more'?'/?tab=more':`/${item.key}`} className={active===item.key?'active':''} key={item.key} aria-current={active===item.key?'page':undefined}><Icon name={item.icon} size={22}/><span>{t(item.label)}</span><NavigationHint/></Link>)}</nav>;
 }
 
 function HomeContent({ pets, activePetIndex, onActivePetIndexChange }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void }) {
+  const t=useT();
   const activePet = pets[activePetIndex] ?? pets[0];
-  return <><TopBar/><PetCarousel pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label="Разделы питомца">{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/></>;
-}
-
-function PlaceholderScreen({ tab }: { tab: "calendar" | "stock" | "family" }) {
-  const copy = placeholderCopy[tab];
-  return <><TopBar/><section className="placeholderScreen"><span className="placeholderIcon"><Icon name={navItems.find((item) => item.key === tab)?.icon ?? "home"} size={30}/></span><h1>{copy.title}</h1><p>{copy.description}</p></section></>;
+  return <><TopBar/><PetSelector pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label={t("Разделы питомца")}>{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/></>;
 }
 
 function MoreScreen() {
-  return <><TopBar/><section className="placeholderScreen moreScreen"><span className="placeholderIcon"><Icon name="more" size={30}/></span><h1>Ещё</h1><p>Управляйте аккаунтом и совместным уходом.</p><p><Link href="/settings">Настройки аккаунта →</Link></p><p><Link href="/family">Моя семья →</Link></p><p><Link href="/calendar">События и напоминания →</Link></p><form action="/auth/signout" method="post"><button className="secondaryAction" type="submit">Выйти из аккаунта</button></form></section></>;
+  const t=useT();
+  return <><TopBar/><section className="placeholderScreen moreScreen"><span className="placeholderIcon"><Icon name="more" size={30}/></span><h1>{t("Ещё")}</h1><p>{t("Управляйте аккаунтом и совместным уходом.")}</p><p><Link href="/settings">{t("Настройки аккаунта →")}</Link></p><p><Link href="/family">{t("Моя семья →")}</Link></p><p><Link href="/calendar">{t("События и напоминания →")}</Link></p><form action="/auth/signout" method="post"><button className="secondaryAction" type="submit">{t("Выйти из аккаунта")}</button></form></section></>;
 }
 
-export function PetfolioHome({ pets, initialTab = 'home' }: { pets: PetViewModel[]; initialTab?: NavKey }) {
-  const [activeTab, setActiveTab] = useState<NavKey>(initialTab);
-  const [activePetIndex, setActivePetIndex] = useState(0);
+const selectionEvent='petfolio-pet-selection';
+let memorySelection='';
+function subscribeSelection(callback:()=>void){window.addEventListener(selectionEvent,callback);return ()=>window.removeEventListener(selectionEvent,callback);}
+function readSelection(){try{return sessionStorage.getItem('petfolio-active-pet')??memorySelection;}catch{return memorySelection;}}
+const serverSelection=()=>'';
 
-  return <main className="appShell"><RefreshOnFocus/><div className="content">{activeTab === "home" ? <HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={setActivePetIndex}/> : activeTab === "more" ? <MoreScreen/> : <PlaceholderScreen tab={activeTab}/>}</div><BottomNav active={activeTab} onChange={setActiveTab}/></main>;
+export function PetfolioHome({pets,initialTab='home'}:{pets:PetViewModel[];initialTab?:NavKey}){
+  const selectedId=useSyncExternalStore(subscribeSelection,readSelection,serverSelection);
+  const activePetIndex=Math.max(0,pets.findIndex(pet=>pet.id===selectedId));
+  function selectPet(index:number){
+    memorySelection=pets[index].id;
+    try{sessionStorage.setItem('petfolio-active-pet',pets[index].id);}catch{/* Storage may be disabled. */}
+    window.dispatchEvent(new Event(selectionEvent));
+  }
+  return <main className="appShell"><RefreshOnFocus/><div className="content">{initialTab==='more'?<MoreScreen/>:<HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={selectPet}/>}</div></main>;
 }

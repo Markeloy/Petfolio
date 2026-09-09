@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-export async function healthContext(petId:string) {
+import {cache} from 'react';
+export const healthContext=cache(async function healthContext(petId:string) {
   const client=await createClient();
   const {data:auth,error}=await client.auth.getClaims();
   if(error||typeof auth?.claims?.sub!=='string') redirect('/login');
@@ -12,7 +13,7 @@ export async function healthContext(petId:string) {
   if(pet.error||profile.error) throw new Error('Не удалось загрузить данные питомца');
   if(!pet.data) notFound();
   return {client,pet:pet.data,userId,timezone:profile.data?.timezone||'Europe/Moscow'};
-}
+});
 export async function authorNames(client:Awaited<ReturnType<typeof createClient>>,ids:string[]) {
   if(!ids.length) return new Map<string,string>();
   const {data,error}=await client.from('profiles').select('id,display_name').in('id',[...new Set(ids)]);

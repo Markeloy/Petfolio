@@ -7,7 +7,9 @@ export type HealthEvent = {
   next_due_on:string|null; product:string|null; clinic:string|null; veterinarian:string|null; notes:string|null;
   created_by:string; updated_by:string|null; created_at:string; updated_at:string; archived_at:string|null;
 };
-export function dateLabel(value:string) { return value.split('-').reverse().join('.'); }
+export function dateLabel(value:string,locale='ru-RU') {
+  return locale.startsWith('en')?new Intl.DateTimeFormat(locale,{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(`${value}T12:00:00Z`)):value.split('-').reverse().join('.');
+}
 export function dueDate(event: Pick<HealthEvent,'status'|'event_on'|'next_due_on'|'archived_at'>): string|null {
   if(event.archived_at || event.status==='cancelled') return null;
   return event.status==='planned' ? event.event_on : event.next_due_on;

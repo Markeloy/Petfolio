@@ -1,20 +1,20 @@
 .familyContent h1 { margin-top:10px; }
 .familyContent h2 { font-size:20px; margin-top:0; overflow-wrap:anywhere; }
-.familyContent p { color:#716b63; font-size:14px; line-height:1.5; }
-.familyContent section { padding:20px; margin-top:18px; background:white; border-radius:18px; }
+.familyContent p { color:var(--c-716b63); font-size:14px; line-height:1.5; }
+.familyContent section { padding:20px; margin-top:18px; background:var(--c-fff); border-radius:18px; }
 .familyForm { display:grid; gap:12px; margin-top:16px; font-size:14px; }
 .familyForm label { display:grid; gap:7px; }
-.familyForm input:not([type=checkbox]),.familyForm select { width:100%; min-width:0; min-height:44px; border:1px solid #d8d1c7; border-radius:10px; padding:10px; font:inherit; color:var(--ink); background:white; }
-.familyForm button { min-height:44px; padding:10px; border:0; border-radius:10px; color:white; background:var(--ink); }
+.familyForm input:not([type=checkbox]),.familyForm select { width:100%; min-width:0; min-height:44px; border:1px solid var(--c-d8d1c7); border-radius:10px; padding:10px; font:inherit; color:var(--ink); background:var(--c-fff); }
+.familyForm button { min-height:44px; padding:10px; border:0; border-radius:10px; color:var(--on-solid); background:#303a32; }
 .familyForm button:disabled { opacity:.6; }
 .familyForm .familyConfirm { display:flex; align-items:flex-start; line-height:1.5; }
 .familyConfirm input { margin-top:4px; width:18px; height:18px; flex-shrink:0; }
 .familyMembers { list-style:none; margin:0; padding:0; }
-.familyMembers li { display:grid; gap:6px; padding:16px 0; border-bottom:1px solid #eee9e1; overflow-wrap:anywhere; }
+.familyMembers li { display:grid; gap:6px; padding:16px 0; border-bottom:1px solid var(--c-eee9e1); overflow-wrap:anywhere; }
 .familyMembers li:last-child { border-bottom:0; }
-.familyMembers li>span { font-size:14px; color:#716b63; }
+.familyMembers li>span { font-size:14px; color:var(--c-716b63); }
 .familyContent details { margin-top:16px; }
 .familyContent summary { cursor:pointer; min-height:40px; font-size:14px; padding-block:8px; }
-.familyForm .familyError { color:#a33626; }
+.familyForm .familyError { color:var(--c-a33626); }
 .familyCode { background:var(--paper); padding:12px; border-radius:12px; }
 .familyCode input { font-family:monospace!important; }

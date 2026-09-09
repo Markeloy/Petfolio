@@ -14,7 +14,7 @@ export async function allPages<T>(query: (from: number, to: number) => PromiseLi
     if (!result.data || result.data.length < 500) return rows;
   }
 }
-export async function calendarEntries(client: SupabaseClient<Database>, petIds: string[], day: string, timezone: string, now = new Date()): Promise<CalendarEntry[]> {
+export async function calendarEntries(client: SupabaseClient<Database>, petIds: string[], day: string, timezone: string, now = new Date(),t:(text:string)=>string=text=>text): Promise<CalendarEntry[]> {
   const entries: CalendarEntry[] = [];
   for (const petId of petIds) {
     const [medications, health] = await Promise.all([
@@ -24,8 +24,8 @@ export async function calendarEntries(client: SupabaseClient<Database>, petIds: 
     ]);
     for (const event of health) {
       const base = {petId, title: event.title, href: `/pets/${petId}/health/events/${event.id}`, instant: null};
-      if (event.event_on === day) entries.push({...base, id: `health:${event.id}`, detail: healthKinds[event.kind], status: healthStatuses[event.status], done: event.status !== 'planned'});
-      if (event.status === 'completed' && event.next_due_on === day) entries.push({...base, id: `repeat:${event.id}`, detail: healthKinds[event.kind], status: 'Повтор по плану', done: false});
+      if (event.event_on === day) entries.push({...base, id: `health:${event.id}`, detail: t(healthKinds[event.kind]), status: healthStatuses[event.status], done: event.status !== 'planned'});
+      if (event.status === 'completed' && event.next_due_on === day) entries.push({...base, id: `repeat:${event.id}`, detail: t(healthKinds[event.kind]), status: 'Повтор по плану', done: false});
     }
     for (let offset = 0; offset < medications.length; offset += 100) {
       const batch = medications.slice(offset, offset + 100);
@@ -40,7 +40,7 @@ export async function calendarEntries(client: SupabaseClient<Database>, petIds: 
           recorded.add(doseKey(dose.schedule_id, dose.scheduled_for));
           const schedule = selected.find(s => s.id === dose.schedule_id)!;
           const medication = batch.find(m => m.id === schedule.medication_id)!;
-          entries.push({id: `dose:${dose.id}`, petId, title: medication.name, detail: formatDose(dose.dose_amount, dose.dose_unit),
+          entries.push({id: `dose:${dose.id}`, petId, title: medication.name, detail: formatDose(dose.dose_amount, dose.dose_unit,t('ru-RU')),
             status: dose.status === 'given' ? 'Дано' : 'Пропущено', done: true, instant: dose.scheduled_for, href: `/pets/${petId}/care/medications/${medication.id}`});
         }
         // Past unrecorded schedules are not historical facts: status and dose can have changed.
@@ -49,7 +49,7 @@ export async function calendarEntries(client: SupabaseClient<Database>, petIds: 
           const medication = batch.find(m => m.id === schedule.medication_id)!;
           for (const instant of occurrencesInDay(schedule, medication, day, timezone)) {
             if (recorded.has(doseKey(schedule.id, instant))) continue;
-            entries.push({id: doseKey(schedule.id, instant), petId, title: medication.name, detail: formatDose(medication.dose_amount, medication.dose_unit),
+            entries.push({id: doseKey(schedule.id, instant), petId, title: medication.name, detail: formatDose(medication.dose_amount, medication.dose_unit,t('ru-RU')),
               status: Date.parse(instant) <= now.getTime() ? 'Не отмечено' : 'По расписанию', done: false, instant, href: `/pets/${petId}/care/medications/${medication.id}`});
           }
         }

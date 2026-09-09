@@ -9,6 +9,7 @@ const {feedingOn}=await import(`data:text/javascript;base64,${Buffer.from(code).
 const asModule=text=>`data:text/javascript;base64,${Buffer.from(text).toString('base64')}`;
 let server=await readFile(new URL('../lib/feeding/server.ts',import.meta.url),'utf8');
 const imports={
+  'react':import.meta.resolve('react'),
   'next/navigation':asModule('export function notFound(){throw Error("not used")}'),
   '@/lib/health/server':asModule('export function healthContext(){throw Error("not used")}'),
   '@/lib/calendar/data':asModule('export async function allPages(query){const r=await query(0,499);if(r.error)throw Error("query failed");return r.data??[]}'),

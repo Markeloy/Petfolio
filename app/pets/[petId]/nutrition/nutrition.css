@@ -2,15 +2,15 @@
 .feedingShell h1 { font-size:32px; margin:16px 0; overflow-wrap:anywhere; }
 .feedingShell h2 { font-size:20px; }
 .feedingShell p { line-height:1.5; }
-.feedingShell section { background:white; border-radius:16px; padding:18px; margin-top:18px; }
+.feedingShell section { background:var(--c-fff); border-radius:16px; padding:18px; margin-top:18px; }
 .feedingForm { display:grid; gap:12px; margin-top:16px; }
 .feedingForm label { display:grid; gap:6px; font-size:14px; }
-.feedingForm input:not([type=checkbox]),.feedingForm select,.feedingForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid #d8d1c7; border-radius:10px; font:inherit; background:white; color:var(--ink); }
-.feedingForm button,.feedingAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:var(--ink); color:white; text-decoration:none; }
+.feedingForm input:not([type=checkbox]),.feedingForm select,.feedingForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--c-d8d1c7); border-radius:10px; font:inherit; background:var(--c-fff); color:var(--ink); }
+.feedingForm button,.feedingAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303a32; color:var(--on-solid); text-decoration:none; }
 .feedingAction { display:inline-block; }
 .feedingForm button:disabled { opacity:.6; }
-.feedingForm p { font-size:14px; color:#716b63; }
-.feedingForm .feedingError { color:#a33626; }
+.feedingForm p { font-size:14px; color:var(--c-716b63); }
+.feedingForm .feedingError { color:var(--c-a33626); }
 .feedingButtons { display:flex; flex-wrap:wrap; gap:12px; }
 .feedingForm .feedingConfirm { display:flex; align-items:flex-start; line-height:1.5; }
 .feedingConfirm input { width:18px; height:18px; flex-shrink:0; }
@@ -18,9 +18,9 @@
 .feedingLinks a { padding-block:8px; }
 .feedingLinks [aria-current=page] { font-weight:700; }
 .feedingList { padding:0; margin:16px 0; list-style:none; display:grid; gap:12px; }
-.feedingList a { display:grid; gap:8px; border-bottom:1px solid #e5dfd6; padding:12px 0; text-decoration:none; overflow-wrap:anywhere; }
+.feedingList a { display:grid; gap:8px; border-bottom:1px solid var(--c-e5dfd6); padding:12px 0; text-decoration:none; overflow-wrap:anywhere; }
 .feedingList span,.feedingList small { font-size:14px; line-height:1.5; }
-.feedingList small { color:#716b63; }
+.feedingList small { color:var(--c-716b63); }
 .feedingAmount { font-size:26px; font-weight:600; }
 .feedingNotes { white-space:pre-wrap; overflow-wrap:anywhere; }
 .feedingShell summary { min-height:44px; padding:12px 0; cursor:pointer; }

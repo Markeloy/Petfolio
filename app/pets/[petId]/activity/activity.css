@@ -2,18 +2,18 @@
 .activityShell h1 { font-size:32px; margin:16px 0; overflow-wrap:anywhere; }
 .activityShell h2 { font-size:20px; }
 .activityShell p { line-height:1.5; overflow-wrap:anywhere; }
-.activityShell section { background:white; border-radius:16px; padding:18px; margin-top:18px; }
+.activityShell section { background:var(--c-fff); border-radius:16px; padding:18px; margin-top:18px; }
 .activityForm { display:grid; gap:12px; margin-top:16px; }
 .activityForm label { display:grid; gap:6px; font-size:14px; }
-.activityForm input:not([type=checkbox]),.activityForm select,.activityForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid #d8d1c7; border-radius:10px; font:inherit; background:white; color:var(--ink); }
-.activityForm button,.activityAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:var(--ink); color:white; text-decoration:none; }
+.activityForm input:not([type=checkbox]),.activityForm select,.activityForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--c-d8d1c7); border-radius:10px; font:inherit; background:var(--c-fff); color:var(--ink); }
+.activityForm button,.activityAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303a32; color:var(--on-solid); text-decoration:none; }
 .activityAction { display:inline-block; }
 .activityForm button:disabled { opacity:.6; }
-.activityForm .activityError { color:#a33626; }
+.activityForm .activityError { color:var(--c-a33626); }
 .activityForm .activityConfirm { display:flex; align-items:flex-start; line-height:1.5; }
 .activityConfirm input { width:18px; height:18px; flex-shrink:0; }
 .activityList { padding:0; margin:16px 0; list-style:none; display:grid; gap:12px; }
-.activityList a { display:grid; gap:8px; border-bottom:1px solid #e5dfd6; padding:12px 0; text-decoration:none; overflow-wrap:anywhere; }
+.activityList a { display:grid; gap:8px; border-bottom:1px solid var(--c-e5dfd6); padding:12px 0; text-decoration:none; overflow-wrap:anywhere; }
 .activityList span,.activityList small { font-size:14px; line-height:1.5; }
 .activityLinks { display:flex; gap:18px; margin:18px 0; }
 .activityLinks a { padding-block:10px; }

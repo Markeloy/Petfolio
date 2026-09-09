@@ -18,6 +18,12 @@ try {
   for(const [path,label] of [['/login','Добро пожаловать'],['/login?mode=signup','Создать аккаунт']]){
     const response=await get(path);assert.equal(response.status,200,path);assert.ok((await response.text()).includes(label),path);
   }
+  for(const theme of ['light','dark','system']){
+    const response=await fetch(base+'/login',{headers:{cookie:`petfolio-language=en; petfolio-theme=${theme}`}});
+    const html=await response.text();assert.equal(response.status,200);
+    assert.match(html,/<html[^>]+lang="en"/);assert.ok(html.includes(`data-theme="${theme}"`));
+    assert.ok(html.includes('Welcome'));assert.ok(!html.includes('Добро пожаловать'));
+  }
   const id='11111111-1111-4111-8111-111111111111';
   for(const path of ['/','/calendar','/family','/stock','/settings','/onboarding/pet',...['profile','care','health','nutrition','documents','activity'].map(section=>`/pets/${id}/${section}`)]){
     const response=await get(path);
@@ -32,7 +38,7 @@ try {
   const missing=await get('/missing-smoke-route');assert.equal(missing.status,404);assert.ok((await missing.text()).includes('Запись недоступна'));
   const manifest=await get('/manifest.webmanifest');assert.equal((await manifest.json()).name,'Petfolio');
   assert.equal((await get('/sw.js')).status,200);
-  console.log('PASS: production startup, login/signup rendering, 12 protected routes, private-file 401/no-store, Russian 404, manifest and service worker. No authenticated workflow or browser layout was tested.');
+  console.log('PASS: production startup, RU/EN rendering, three SSR themes, 12 protected routes, private-file 401/no-store, Russian 404, manifest and service worker. No authenticated workflow or browser layout was tested.');
 } finally {
   server.kill();if(server.exitCode===null)await once(server,'exit');
 }

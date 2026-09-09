@@ -1,2 +1,5 @@
 'use client';
-export default function ErrorPage({retry}:{retry:()=>void}){return <><h1>Активность</h1><p role="alert">Не удалось загрузить записи.</p><button onClick={retry}>Повторить</button></>;}
+import {useT} from "@/lib/i18n/client";
+
+export default function ErrorPage({retry}:{retry:()=>void}){
+  const t=useT();return <><h1>{t("Активность")}</h1><p role="alert">{t("Не удалось загрузить записи.")}</p><button onClick={retry}>{t("Повторить")}</button></>;}

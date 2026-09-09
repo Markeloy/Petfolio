@@ -1,3 +1,5 @@
+
+import {getT} from "@/lib/i18n/server";
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
@@ -6,6 +8,7 @@ import { MedicationEditForm, ScheduleEditForm } from './forms';
 export const dynamic = 'force-dynamic';
 
 export default async function EditPage({ params }: { params: Promise<{petId:string;medicationId:string}> }) {
+  const t=await getT();
   const { petId, medicationId } = await params;
   const client = await createClient();
   const { data: auth, error: authError } = await client.auth.getClaims();
@@ -20,12 +23,12 @@ export default async function EditPage({ params }: { params: Promise<{petId:stri
   const schedules = medication.data.medication_schedules.filter(s=>s.is_active && s.schedule_type==='daily_time'
     && (!s.active_until || s.active_until>localDate(now,s.timezone)));
   return <main className="detailShell formDetailShell">
-    <div className="detailTopBar"><Link className="backButton" aria-label="Назад к лекарству" href={`/pets/${petId}/care/medications/${medicationId}`}>‹</Link><div><p className="eyebrow">{pet.data.name}</p><h1>Редактирование</h1></div></div>
+    <div className="detailTopBar"><Link className="backButton" aria-label={t("Назад к лекарству")} href={`/pets/${petId}/care/medications/${medicationId}`}>‹</Link><div><p className="eyebrow">{pet.data.name}</p><h1>{t("Редактирование")}</h1></div></div>
     <MedicationEditForm medication={medication.data}/>
-    <section className="careSection"><h2>Расписание</h2>
-      <p className="formSectionHint">Каждый приём сохраняется отдельно. Смена времени доступна с завтрашнего дня в пределах курса и расписания.</p>
+    <section className="careSection"><h2>{t("Расписание")}</h2>
+      <p className="formSectionHint">{t("Каждый приём сохраняется отдельно. Смена времени доступна с завтрашнего дня в пределах курса и расписания.")}</p>
       {schedules.map(s=><ScheduleEditForm key={s.id} schedule={s} petId={petId} now={now.toISOString()}/>)}
-      {!schedules.length && <p className="emptyStateCard">Нет действующих ежедневных расписаний с будущими приёмами.</p>}
+      {!schedules.length && <p className="emptyStateCard">{t("Нет действующих ежедневных расписаний с будущими приёмами.")}</p>}
     </section>
   </main>;
 }

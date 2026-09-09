@@ -1,15 +1,17 @@
 import type { MetadataRoute } from "next";
+import {getPreferences,getT} from '@/lib/i18n/server';
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const {locale,theme}=await getPreferences(),t=await getT();
   return {
     name: "Petfolio",
     short_name: "Petfolio",
-    description: "Здоровье, уход и важные события ваших питомцев в одном месте",
+    description: t("Здоровье, уход и важные события ваших питомцев в одном месте"),
     start_url: "/",
     display: "standalone",
-    background_color: "#f7f4ee",
-    theme_color: "#f7f4ee",
-    lang: "ru",
+    background_color: theme==='dark'?'#171d19':'#f7f4ee',
+    theme_color: theme==='dark'?'#171d19':'#f7f4ee',
+    lang: locale,
     orientation: "portrait-primary",
     icons: [
       {
