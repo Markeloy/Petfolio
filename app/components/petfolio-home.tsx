@@ -1,4 +1,6 @@
 "use client";
+import {NotificationCenter} from "./notification-center";
+import type {Notice} from "@/lib/notifications/model";
 import {useT} from "@/lib/i18n/client";
 
 import Link, {useLinkStatus} from "next/link";
@@ -57,9 +59,8 @@ const sections: { title: string; description: string; icon: IconName; tone: stri
   { title: "Профиль", description: "Фото, дата рождения, вес", icon: "settings", tone: "gray", route: "profile" },
 ];
 
-function TopBar() {
-  const t=useT();
-  return <header className="topBar"><p className="eyebrow">Petfolio</p><Link className="iconButton" href="/calendar" aria-label={t("События и напоминания")}><Icon name="bell"/></Link></header>;
+function TopBar({notices,scope='',error=false}:{notices?:Notice[];scope?:string;error?:boolean}) {
+  return <header className="topBar"><p className="eyebrow">Petfolio</p>{notices&&<NotificationCenter items={notices} scope={scope} error={error}/>}</header>;
 }
 
 function PetProfile({ pet, showAdd }: { pet: PetViewModel; showAdd: boolean }) {
@@ -116,10 +117,10 @@ export function BottomNav({active}:{active:NavKey}){
   return <nav className="bottomNav" aria-label={t('Основная навигация')}>{navItems.map(item=><Link prefetch={true} href={item.key==='home'?'/':item.key==='more'?'/?tab=more':`/${item.key}`} className={active===item.key?'active':''} key={item.key} aria-current={active===item.key?'page':undefined}><Icon name={item.icon} size={22}/><span>{t(item.label)}</span><NavigationHint/></Link>)}</nav>;
 }
 
-function HomeContent({ pets, activePetIndex, onActivePetIndexChange }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void }) {
+function HomeContent({ pets, activePetIndex, onActivePetIndexChange,notices,shopping,noticeScope,noticeError }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void;notices:Notice[];shopping:Notice[];noticeScope:string;noticeError:boolean }) {
   const t=useT();
   const activePet = pets[activePetIndex] ?? pets[0];
-  return <><TopBar/><PetSelector pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label={t("Разделы питомца")}>{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/></>;
+  return <><TopBar notices={notices} scope={noticeScope} error={noticeError}/><PetSelector pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label={t("Разделы питомца")}>{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/>{shopping.length>0&&<section className="shoppingReminders" aria-label={t('Пора купить')}><div className="shoppingHeading"><h2>{t('Пора купить')}</h2><Link href="/stock?status=low">{t('Все запасы')} →</Link></div>{shopping.map(item=><Link className="shoppingReminder" key={item.id} href={item.href}><span className="cardIcon"><Icon name="stock" size={22}/></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><span aria-hidden="true">›</span></Link>)}</section>}{noticeError&&<p className="notificationHint" role="status">{t('Часть уведомлений не удалось загрузить. Обновите страницу.')}</p>}</>;
 }
 
 function MoreScreen() {
@@ -133,7 +134,7 @@ function subscribeSelection(callback:()=>void){window.addEventListener(selection
 function readSelection(){try{return sessionStorage.getItem('petfolio-active-pet')??memorySelection;}catch{return memorySelection;}}
 const serverSelection=()=>'';
 
-export function PetfolioHome({pets,initialTab='home'}:{pets:PetViewModel[];initialTab?:NavKey}){
+export function PetfolioHome({pets,initialTab='home',notices=[],shopping=[],noticeScope='',noticeError=false}:{pets:PetViewModel[];initialTab?:NavKey;notices?:Notice[];shopping?:Notice[];noticeScope?:string;noticeError?:boolean}){
   const selectedId=useSyncExternalStore(subscribeSelection,readSelection,serverSelection);
   const activePetIndex=Math.max(0,pets.findIndex(pet=>pet.id===selectedId));
   function selectPet(index:number){
@@ -141,5 +142,5 @@ export function PetfolioHome({pets,initialTab='home'}:{pets:PetViewModel[];initi
     try{sessionStorage.setItem('petfolio-active-pet',pets[index].id);}catch{/* Storage may be disabled. */}
     window.dispatchEvent(new Event(selectionEvent));
   }
-  return <main className="appShell"><RefreshOnFocus/><div className="content">{initialTab==='more'?<MoreScreen/>:<HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={selectPet}/>}</div></main>;
+  return <main className="appShell"><RefreshOnFocus/><div className="content">{initialTab==='more'?<MoreScreen/>:<HomeContent pets={pets} activePetIndex={activePetIndex} onActivePetIndexChange={selectPet} notices={notices} shopping={shopping} noticeScope={noticeScope} noticeError={noticeError}/>}</div></main>;
 }

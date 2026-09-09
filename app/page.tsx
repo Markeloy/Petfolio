@@ -7,6 +7,8 @@ import { PetfolioHome, type PetViewModel } from "@/app/components/petfolio-home"
 import { createClient } from "@/lib/supabase/server";
 import { familyMemberships } from "@/lib/family/server";
 import {getT} from '@/lib/i18n/server';
+import {allPages} from '@/lib/calendar/data';
+import {stockNotices,type Notice} from '@/lib/notifications/model';
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +77,8 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
     .from("weight_records").select("pet_id, weight_kg, measured_at").eq("pet_id",petId)
     .is("archived_at",null).order("measured_at",{ascending:false})
     .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1)));
-  const [weightResults,[reminders,healthReminders,foodReminders,walkReminders]]=await Promise.all([weightsPromise,(async()=>{
+  const stockPromise=allPages((from,to)=>supabase.from('stock_items').select('id,name,quantity,threshold,unit,updated_at,archived_at').eq('household_id',membership.household_id).is('archived_at',null).eq('is_low',true).order('name').order('id').range(from,to)).catch(()=>null);
+  const [lowStock,weightResults,[reminders,healthReminders,foodReminders,walkReminders]]=await Promise.all([stockPromise,weightsPromise,(async()=>{
     const {data:profile,error:profileError}=await supabase.from('profiles').select('timezone').eq('id',userId).maybeSingle();
     const now=new Date();
     return Promise.all([
@@ -87,6 +90,11 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
   })()]);
   if(weightResults.some(r=>r.error))throw new Error('Не удалось загрузить вес');
   const latestWeights=new Map(weightResults.flatMap(r=>r.data??[]).map(row=>[row.pet_id,Number(row.weight_kg)]));
+  const shopping=stockNotices(lowStock??[],t);
+  const notices:Notice[]=[...shopping];
+  for(const set of [reminders,healthReminders,foodReminders,walkReminders])for(const [petId,event] of set??[]){
+    notices.push({id:`care:${event.href}:${event.instant}`,kind:'care',title:event.name,detail:`${petRows.find(p=>p.id===petId)?.name??''} · ${event.dose} · ${event.when}`,href:event.href});
+  }
   if(reminders&&healthReminders)for(const [petId,event] of healthReminders) {
     if(!reminders.has(petId)||Date.parse(event.instant)<Date.parse(reminders.get(petId)!.instant))reminders.set(petId,event);
   }
@@ -120,5 +128,5 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
   }));
 
   const initialTab = 'home';
-  return <PetfolioHome key={`${membership.household_id}:${initialTab}`} pets={pets} initialTab={initialTab} />;
+  return <PetfolioHome key={`${membership.household_id}:${initialTab}`} pets={pets} initialTab={initialTab} notices={notices} shopping={shopping} noticeScope={`${userId}:${membership.household_id}`} noticeError={lowStock===null||reminders===null||healthReminders===null||foodReminders===null||walkReminders===null} />;
 }

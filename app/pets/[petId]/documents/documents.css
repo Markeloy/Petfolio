@@ -5,7 +5,7 @@
 .documentForm { display:grid; gap:12px; margin-top:16px; }
 .documentForm label { display:grid; gap:6px; font-size:14px; }
 .documentForm input:not([type=checkbox]),.documentForm select,.documentForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--c-d8d1c7); border-radius:10px; font:inherit; background:var(--c-fff); color:var(--ink); }
-.documentForm button,.documentAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303a32; color:var(--on-solid); text-decoration:none; }
+.documentForm button,.documentAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303030; color:var(--on-solid); text-decoration:none; }
 .documentAction { display:inline-block; }
 .documentForm button:disabled { opacity:.6; }
 .documentForm .documentError { color:var(--c-a33626); }

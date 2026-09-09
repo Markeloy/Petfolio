@@ -768,5 +768,20 @@
   "Это действие доступно владельцу": "Only the owner can perform this action",
   "Наблюдатель": "Viewer",
   "Вы наблюдатель: можете просматривать записи семьи.": "You are a viewer: you can read your family’s records.",
-  "Лекарства, расписание, приёмы": "Medication, schedules, doses"
+  "Лекарства, расписание, приёмы": "Medication, schedules, doses",
+  "Уведомления": "Notifications",
+  "Непрочитанные": "Unread",
+  "Закрыть уведомления": "Close notifications",
+  "Текущие напоминания семьи. Прочтение сохраняется на этом устройстве.": "Current family reminders. Read status is saved on this device.",
+  "Прочитать все": "Mark all as read",
+  "Часть уведомлений не удалось загрузить. Обновите страницу.": "Some notifications could not be loaded. Refresh the page.",
+  "Пока всё спокойно": "You’re all caught up",
+  "Здесь появятся напоминания об уходе и покупках.": "Care and shopping reminders will appear here.",
+  "Прочитано": "Read",
+  "Непрочитанное": "Unread",
+  "Отметить прочитанным": "Mark as read",
+  "Все запасы": "All supplies",
+  "Осталось:": "Remaining:",
+  "Напомнить о покупке при остатке": "Remind me to buy when stock reaches",
+  ". При остатке на уровне порога или ниже напоминание появится на главной и в колокольчике. После пополнения выше порога оно исчезнет.": ". At or below this threshold, a reminder appears on Home and in the notification bell. It disappears once stock rises above the threshold."
 }

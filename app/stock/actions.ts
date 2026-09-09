@@ -32,6 +32,7 @@ export async function saveStock(mode:string,household:string,itemId:string,reque
   const {error}=await client.rpc('stock_action',{p_action:mode,p_household:household,p_item:itemId,p_request:requestId,p_values:values});
   if(error)return {error:error.code==='P0001'?error.message:'Не удалось сохранить. Обновите страницу и проверьте доступ к семье'};
   revalidatePath('/stock','layout');
+  revalidatePath('/');
   if(mode==='create')redirect(`/stock/${itemId}`);
   return {success:'Сохранено'};
 }

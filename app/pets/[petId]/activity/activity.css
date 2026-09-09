@@ -6,7 +6,7 @@
 .activityForm { display:grid; gap:12px; margin-top:16px; }
 .activityForm label { display:grid; gap:6px; font-size:14px; }
 .activityForm input:not([type=checkbox]),.activityForm select,.activityForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--c-d8d1c7); border-radius:10px; font:inherit; background:var(--c-fff); color:var(--ink); }
-.activityForm button,.activityAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303a32; color:var(--on-solid); text-decoration:none; }
+.activityForm button,.activityAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303030; color:var(--on-solid); text-decoration:none; }
 .activityAction { display:inline-block; }
 .activityForm button:disabled { opacity:.6; }
 .activityForm .activityError { color:var(--c-a33626); }

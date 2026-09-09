@@ -9,8 +9,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     description: t("Здоровье, уход и важные события ваших питомцев в одном месте"),
     start_url: "/",
     display: "standalone",
-    background_color: theme==='dark'?'#171d19':'#f7f4ee',
-    theme_color: theme==='dark'?'#171d19':'#f7f4ee',
+    background_color: theme==='dark'?'#181818':'#f7f7f8',
+    theme_color: theme==='dark'?'#181818':'#f7f7f8',
     lang: locale,
     orientation: "portrait-primary",
     icons: [

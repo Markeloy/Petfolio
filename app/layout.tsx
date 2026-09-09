@@ -29,7 +29,7 @@ export async function generateViewport():Promise<Viewport> {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: theme==='system'?[{media:'(prefers-color-scheme: light)',color:'#f7f4ee'},{media:'(prefers-color-scheme: dark)',color:'#171d19'}]:theme==='dark'?'#171d19':'#f7f4ee',
+  themeColor: theme==='system'?[{media:'(prefers-color-scheme: light)',color:'#f7f7f8'},{media:'(prefers-color-scheme: dark)',color:'#181818'}]:theme==='dark'?'#181818':'#f7f7f8',
   };
 }
 
