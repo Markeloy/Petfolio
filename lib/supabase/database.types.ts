@@ -1,3 +1,4 @@
+import type {CareProcedure,ProcedureLog} from '@/lib/procedures/types';
 import type { HealthEvent } from '@/lib/health/types';
 import type { StockItem,StockMovement } from '@/lib/stock/types';
 import type { FeedingPlan,FeedingLog } from '@/lib/feeding/types';
@@ -17,6 +18,8 @@ export type Database = {
   }
   public: {
     Tables: {
+      care_procedures:{Row:CareProcedure;Insert:never;Update:never;Relationships:[]}
+      care_procedure_logs:{Row:ProcedureLog;Insert:never;Update:never;Relationships:[]}
       pet_activities: {Row:PetActivity;Insert:never;Update:never;Relationships:[]}
       pet_documents: {Row:PetDocument;Insert:never;Update:never;Relationships:[]}
       feeding_plans: {Row:FeedingPlan;Insert:never;Update:never;Relationships:[]}
@@ -445,6 +448,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      procedure_action:{Args:{p_action:string;p_pet:string;p_id:string;p_values:Json};Returns:string}
       activity_action: {Args:{p_action:string;p_pet:string;p_activity:string;p_values:Json};Returns:string}
       document_action: {Args:{p_action:string;p_pet:string;p_document:string;p_values:Json};Returns:Json}
       feeding_action: {Args:{p_action:string;p_pet:string;p_plan:string;p_request:string;p_values:Json};Returns:string}

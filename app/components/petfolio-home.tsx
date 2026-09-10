@@ -85,7 +85,7 @@ function PetSelector({pets,activeIndex,onActiveIndexChange}:{pets:PetViewModel[]
 
 function SectionCard({ section, petId }: { section: (typeof sections)[number]; petId: string }) {
   const t=useT();
-  const content = <><span className="cardArrow">↗</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{t(section.title)}</strong><small>{t(section.description)}</small></>;
+  const content = <><span className="cardArrow">›</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{t(section.title)}</strong><small>{t(section.description)}</small></>;
   if (section.route) return <Link prefetch={true} className={`sectionCard ${section.tone}`} href={`/pets/${petId}/${section.route}`}>{content}<NavigationHint/></Link>;
   return <button className={`sectionCard ${section.tone}`} type="button">{content}</button>;
 }
@@ -94,7 +94,7 @@ function Reminder({ pet }: { pet: PetViewModel }) {
   const t=useT();
   if (pet.reminderError) return <div className="reminder" role="status"><span>{t("Не удалось загрузить напоминание. Обновите страницу.")}</span></div>;
   const reminder = pet.reminder;
-  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name={reminder.kind==='feeding'?'bowl':reminder.kind==='activity'?'paw':'syringe'}/></span><span><small>{reminder.kind==='health'?t("Здоровье"):reminder.kind==='feeding'?t("Следующее кормление"):reminder.kind==='activity'?t("Активность"):t("Следующий приём")} · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
+  if (reminder) return <Link className="reminder" href={reminder.href}><span className="reminderIcon"><Icon name={reminder.kind==='feeding'?'bowl':reminder.kind==='procedure'?'paw':reminder.kind==='activity'?'paw':'syringe'}/></span><span><small>{reminder.kind==='procedure'?t('Процедура'):reminder.kind==='health'?t("Здоровье"):reminder.kind==='feeding'?t("Следующее кормление"):reminder.kind==='activity'?t("Активность"):t("Следующий приём")} · {reminder.dose}</small><strong>{reminder.name}</strong><time dateTime={reminder.instant}>{reminder.when}</time></span><b>›</b></Link>;
   return <Link className="reminder" href={`/pets/${pet.id}/health/new`}><span className="reminderIcon"><Icon name="syringe"/></span><span><small>{t("Следующее напоминание")}</small><strong>{t("Пока ничего не запланировано")}</strong><small>{t("Добавить событие здоровья")}</small></span><b>›</b></Link>;
 }
 

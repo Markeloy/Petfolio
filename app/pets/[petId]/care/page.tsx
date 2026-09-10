@@ -1,3 +1,6 @@
+import {allPages} from '@/lib/calendar/data';
+import {dateLabel} from '@/lib/health/types';
+import {procedureKinds} from '@/lib/procedures/types';
 
 import {getT} from "@/lib/i18n/server";
 import Link from 'next/link';
@@ -33,6 +36,7 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
 
   if (medicationsError) redirect("/auth/error?reason=medications");
 
+  const procedures=await allPages((from,to)=>supabase.from('care_procedures').select('*').eq('pet_id',petId).order('next_on',{nullsFirst:false}).order('id').range(from,to));
   const activeMedications = (medications ?? []).filter((medication) => medication.status === "active" || medication.status === "paused");
 
   return <main className="detailShell">
@@ -45,7 +49,7 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
     <section className="careHero">
       <p className="wizardEyebrow">{t("Уход за питомцем")}</p>
       <h2>{t("Лекарства, процедуры и регулярный уход")}</h2>
-      <p>{t("Здесь постепенно соберём всё, что семья делает для")}{' '}{pet.name}{t(": приём лекарств, груминг и другие процедуры.")}</p>
+      <p>{t("Расписание и история ухода для")}{' '}{pet.name}{t(": приём лекарств, груминг и другие процедуры.")}</p>
     </section>
 
     <section className="careSection">
@@ -90,9 +94,11 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
       )}</div>
     </section>
 
-    <section className="careSection mutedCareSection">
-      <div><p className="wizardEyebrow">{t("Скоро")}</p><h2>{t("Груминг и процедуры")}</h2></div>
-      <p>{t("Этот блок будет следующим: стрижка когтей, купание, чистка ушей и любые собственные процедуры.")}</p>
+    <section className="careSection">
+      <div className="sectionHeadingRow"><h2>{t('Груминг и процедуры')}</h2><Link className="compactAction" href={`/pets/${petId}/care/procedures/new`}>{t('＋ Добавить')}</Link></div>
+      {!procedures.length&&<p>{t('Запланируйте купание, стрижку когтей или другую процедуру. Отметки и история доступны всей семье.')}</p>}
+      <div className="medicationList">{procedures.filter(p=>!p.archived_at).map(p=><Link className="medicationCard medicationLink" key={p.id} href={`/pets/${petId}/care/procedures/${p.id}`}><div className="medicationCardTop"><strong>{p.title}</strong><span>{t(procedureKinds[p.kind])}</span></div><p>{p.next_on?dateLabel(p.next_on,t('ru-RU')):t('Следующая процедура не запланирована')}</p><span className="medicationOpen">{t('Отметки и история →')}</span></Link>)}</div>
+      {procedures.some(p=>p.archived_at)&&<details><summary>{t('Архив')}</summary><div className="medicationList">{procedures.filter(p=>p.archived_at).map(p=><Link className="medicationCard medicationLink" key={p.id} href={`/pets/${petId}/care/procedures/${p.id}`}>{p.title}</Link>)}</div></details>}
     </section>
   </main>;
 }

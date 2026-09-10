@@ -40,7 +40,7 @@ test('all literal UI translation keys have English entries; translated option la
 });
 test('small card descriptions and muted text meet 4.5:1 contrast in both palettes',()=>{
   const css=readFileSync(new URL('../app/appearance.css',import.meta.url),'utf8');
-  const palettes=[...css.matchAll(/(?:^:root|:root\[data-theme="dark"\])\{([^}]+)\}/gm)].map(m=>Object.fromEntries([...m[1].matchAll(/--c-([a-f0-9]+):#([a-f0-9]+);/g)].map(v=>[v[1],v[2]])));
+  const palettes=[...css.matchAll(/(?:^:root|:root\[data-theme="dark"\])\{([^}]+)\}/gm)].map(m=>Object.fromEntries([...m[1].matchAll(/--c-([a-f0-9]+):#([a-f0-9]+);/g)].map(v=>[v[1],v[2]]))).filter(p=>p['858078']);
   function luminance(hex){
     if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
     return hex.match(/../g).map(c=>parseInt(c,16)/255).map(v=>v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[0.2126,0.7152,0.0722][i],0);
@@ -50,4 +50,13 @@ test('small card descriptions and muted text meet 4.5:1 contrast in both palette
     const [low,high]=[luminance(palette[fg]),luminance(palette[bg])].sort((a,b)=>a-b);
     assert.ok((high+0.05)/(low+0.05)>=4.5,`${fg} on ${bg}`);
   }
+});
+test('new section accents keep small text readable in light and dark mode',()=>{
+ const css=readFileSync(new URL('../app/appearance.css',import.meta.url),'utf8');
+ const blocks=[...css.matchAll(/(?:^:root|:root\[data-theme="dark"\])\{([^}]+)\}/gm)].map(m=>Object.fromEntries([...m[1].matchAll(/--([\w-]+):#([a-f0-9]+);/g)].map(v=>[v[1],v[2]])));
+ const light={...blocks[0],...blocks[2]},dark={...blocks[1],...blocks[3]};
+ const lum=h=>h.match(/../g).map(c=>parseInt(c,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+ for(const palette of [light,dark])for(const name of ['rose','lilac','sand','blue','peach','gray'])for(const fg of ['c-858078',`icon-${name}`]){
+  const pair=[lum(palette[fg]),lum(palette[`section-${name}`])].sort((a,b)=>a-b);assert.ok((pair[1]+.05)/(pair[0]+.05)>=4.5,`${fg} on ${name}`);
+ }
 });

@@ -1,0 +1,2 @@
+export const documentSorts={newest:{label:'Сначала новые',column:'created_at',ascending:false},oldest:{label:'Сначала старые',column:'created_at',ascending:true},name:{label:'По названию',column:'title',ascending:true},size:{label:'Сначала крупные файлы',column:'file_size',ascending:false}} as const;
+export function documentSort(value:unknown):keyof typeof documentSorts{return typeof value==='string'&&Object.hasOwn(documentSorts,value)?value as keyof typeof documentSorts:'newest';}

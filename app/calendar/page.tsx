@@ -1,3 +1,4 @@
+import {procedureCalendar} from '@/lib/procedures/server';
 
 import {getT} from "@/lib/i18n/server";
 import Link from 'next/link';
@@ -35,7 +36,7 @@ export default async function CalendarPage({searchParams}: {searchParams: Promis
   const day = calendarDate(query.date, today);
   const petId = pets.some(p => p.id === query.pet) ? query.pet! : '';
   const selected = petId ? pets.filter(p => p.id === petId) : pets;
-  const entrySets=await Promise.all([calendarEntries(client, selected.map(p => p.id), day, timezone, now,t),feedingCalendar(client, selected.map(p=>p.id),day,timezone,now,t),activityCalendar(client,selected.map(p=>p.id),day,timezone,t)]);
+  const entrySets=await Promise.all([procedureCalendar(client,selected.map(p=>p.id),day,t),calendarEntries(client, selected.map(p => p.id), day, timezone, now,t),feedingCalendar(client, selected.map(p=>p.id),day,timezone,now,t),activityCalendar(client,selected.map(p=>p.id),day,timezone,t)]);
   const entries=entrySets.flat().sort((a,b)=>(a.instant??'').localeCompare(b.instant??'')||a.title.localeCompare(b.title,'ru')||a.id.localeCompare(b.id));
   const href = (date: string) => `/calendar?${new URLSearchParams({date, ...(petId ? {pet: petId} : {})})}`;
   const monthStart = `${day.slice(0,7)}-01`;
