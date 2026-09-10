@@ -1,0 +1,44 @@
+-- Isolated PostgreSQL fixtures only; never run against production.
+BEGIN;
+DO $$
+DECLARE owner_id uuid:=gen_random_uuid(); member_id uuid:=gen_random_uuid(); viewer_id uuid:=gen_random_uuid(); outsider uuid:=gen_random_uuid(); family uuid; pet uuid; entry uuid:=gen_random_uuid(); single_id uuid:=gen_random_uuid(); version timestamptz; values jsonb; today date:=(now() AT TIME ZONE 'Europe/Moscow')::date;
+BEGIN
+ INSERT INTO auth.users(id,raw_user_meta_data) VALUES(owner_id,'{"name":"Care owner"}'),(member_id,'{"name":"Care member"}'),(viewer_id,'{"name":"Care viewer"}'),(outsider,'{"name":"Care outsider"}');
+ SELECT household_id INTO family FROM public.household_members WHERE user_id=owner_id LIMIT 1;
+ INSERT INTO public.household_members(household_id,user_id,role) VALUES(family,member_id,'member'),(family,viewer_id,'viewer');
+ INSERT INTO public.pets(household_id,name,created_by) VALUES(family,'Care test',owner_id) RETURNING id INTO pet;
+ PERFORM set_config('request.jwt.claim.sub',owner_id::text,true);PERFORM set_config('role','authenticated',true);
+ values:=jsonb_build_object('kind','bath','title','Bath','next_on',today-2,'repeat_days',14,'notes','');
+ PERFORM public.procedure_action('create',pet,entry,values);PERFORM public.procedure_action('create',pet,entry,values);
+ IF (SELECT count(*) FROM public.activity_log WHERE entity_id=entry)<>1 THEN RAISE EXCEPTION 'create duplicate';END IF;
+ SELECT updated_at INTO version FROM public.care_procedures WHERE id=entry;
+ PERFORM set_config('request.jwt.claim.sub',member_id::text,true);
+ PERFORM public.procedure_action('mark',pet,entry,jsonb_build_object('version',version,'day',today-2,'status','done'));
+ PERFORM public.procedure_action('mark',pet,entry,jsonb_build_object('version',version,'day',today-2,'status','skipped'));
+ IF (SELECT count(*) FROM public.care_procedure_logs WHERE procedure_id=entry)<>1 OR (SELECT status FROM public.care_procedure_logs WHERE procedure_id=entry)<>'done' OR (SELECT actor_name FROM public.care_procedure_logs WHERE procedure_id=entry)<>'Care member' THEN RAISE EXCEPTION 'duplicate or author';END IF;
+ IF (SELECT next_on FROM public.care_procedures WHERE id=entry)<>today+14 THEN RAISE EXCEPTION 'repeat from actual day';END IF;
+ BEGIN PERFORM public.procedure_action('edit',pet,entry,values||jsonb_build_object('version',version));RAISE EXCEPTION 'stale accepted' USING ERRCODE='XX000';EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL;END;
+ SELECT updated_at INTO version FROM public.care_procedures WHERE id=entry;
+ BEGIN PERFORM public.procedure_action('mark',pet,entry,jsonb_build_object('version',version,'day',today+14,'status','done'));RAISE EXCEPTION 'future accepted' USING ERRCODE='XX000';EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL;END;
+ PERFORM public.procedure_action('edit',pet,entry,values||jsonb_build_object('version',version,'title','Changed','next_on',today+1));
+ IF (SELECT title FROM public.care_procedure_logs WHERE procedure_id=entry)<>'Bath' THEN RAISE EXCEPTION 'history changed';END IF;
+ SELECT updated_at INTO version FROM public.care_procedures WHERE id=entry;
+ PERFORM public.procedure_action('archive',pet,entry,jsonb_build_object('version',version));
+ SELECT updated_at INTO version FROM public.care_procedures WHERE id=entry;
+ PERFORM public.procedure_action('restore',pet,entry,jsonb_build_object('version',version));
+ IF (SELECT archived_at FROM public.care_procedures WHERE id=entry) IS NOT NULL THEN RAISE EXCEPTION 'restore failed';END IF;
+ PERFORM public.procedure_action('create',pet,single_id,values||jsonb_build_object('next_on',today,'repeat_days',NULL));
+ SELECT updated_at INTO version FROM public.care_procedures WHERE id=single_id;
+ PERFORM public.procedure_action('mark',pet,single_id,jsonb_build_object('version',version,'day',today,'status','skipped'));
+ IF (SELECT next_on FROM public.care_procedures WHERE id=single_id) IS NOT NULL THEN RAISE EXCEPTION 'one time repeat';END IF;
+ BEGIN UPDATE public.care_procedures SET title='Bypass' WHERE id=entry;RAISE EXCEPTION 'direct write accepted';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ PERFORM set_config('request.jwt.claim.sub',viewer_id::text,true);
+ IF (SELECT count(*) FROM public.care_procedure_logs)<>2 THEN RAISE EXCEPTION 'viewer history';END IF;
+ BEGIN PERFORM public.procedure_action('create',pet,gen_random_uuid(),values);RAISE EXCEPTION 'viewer wrote';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ PERFORM set_config('request.jwt.claim.sub',outsider::text,true);
+ IF EXISTS(SELECT 1 FROM public.care_procedures) OR EXISTS(SELECT 1 FROM public.care_procedure_logs) THEN RAISE EXCEPTION 'family leak';END IF;
+ BEGIN PERFORM public.procedure_action('create',pet,gen_random_uuid(),values);RAISE EXCEPTION 'outsider wrote';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ PERFORM set_config('role','postgres',true);
+END $$;
+SELECT 'PASS: procedure repeat, one-time, duplicates, history snapshot, authors, future dates, stale edits, archive, roles and family isolation' AS result;
+ROLLBACK;
