@@ -2,6 +2,8 @@
 
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
+import { analyticsContextFromForm } from "@/lib/analytics/context";
+import { trackServer } from "@/lib/analytics/server";
 import { createClient } from "@/lib/supabase/server";
 import { familyMemberships } from "@/lib/family/server";
 
@@ -39,6 +41,7 @@ export async function createPet(formData: FormData) {
   const {active:membership}=await familyMemberships(supabase,userId);
   if (!membership) redirect('/family');
 
+  const analyticsContext = analyticsContextFromForm(formData);
   const name = String(formData.get("name") ?? "").trim();
   const speciesRaw = String(formData.get("species") ?? "other");
   const sexRaw = String(formData.get("sex") ?? "unknown");
@@ -60,6 +63,12 @@ export async function createPet(formData: FormData) {
     if (avatar.size > 8 * 1024 * 1024) redirect(onboardingUrl({ error: "Фото должно быть не больше 8 МБ" }));
     if (!avatarMimeTypes.has(avatar.type)) redirect(onboardingUrl({ error: "Используйте JPG, PNG, WebP, HEIC или HEIF" }));
   }
+
+  const { count: existingPetCount } = await supabase
+    .from("pets")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", membership.household_id)
+    .is("archived_at", null);
 
   const { data: pet, error: petError } = await supabase
     .from("pets")
@@ -83,6 +92,11 @@ export async function createPet(formData: FormData) {
 
   if (petError || !pet) redirect(onboardingUrl({ error: "Не удалось сохранить питомца" }));
 
+  await trackServer(supabase, "pet_created", {
+    species,
+    is_first_pet: (existingPetCount ?? 0) === 0,
+  }, { context: analyticsContext, householdId: membership.household_id, petId: pet.id });
+
   if (avatar instanceof File && avatar.size > 0) {
     const extension = avatarExtensions[avatar.type] ?? "jpg";
     const avatarPath = `${pet.id}/${randomUUID()}.${extension}`;
@@ -103,6 +117,11 @@ export async function createPet(formData: FormData) {
       created_by: userId,
     });
     if (weightError) redirect(homeUrl({ warning: "Питомец сохранён, но вес пока не записан" }));
+    await trackServer(supabase, "weight_recorded", { is_first_weight: true }, {
+      context: analyticsContext,
+      householdId: membership.household_id,
+      petId: pet.id,
+    });
   }
 
   redirect("/");
