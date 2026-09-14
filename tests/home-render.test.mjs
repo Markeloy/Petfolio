@@ -30,6 +30,9 @@ test('English home retains six sections, visible pet selection and original pet 
   assert.match(html,/aria-pressed="true">Семья/);
   assert.match(html,/href="\/onboarding\/pet"/);
   assert.match(html,/href="\/pets\/pet-one\/care"/);
+  assert.match(html,/Quick add/);
+  for(const href of ['/pets/pet-one/health/weight/new','/pets/pet-one/health/new?kind=visit','/pets/pet-one/care/procedures/new','/pets/pet-one/nutrition/new'])assert.ok(html.includes(`href="${href.replace('&','&amp;')}"`),href);
+  assert.equal((html.match(/class="quickAction /g)??[]).length,4);
   assert.ok(!/[А-Яа-яЁё]/.test(html.replaceAll('Семья','')));
 });
 test('More renders without loading pet data and navigation has five real links',()=>{

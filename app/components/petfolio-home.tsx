@@ -83,6 +83,21 @@ function PetSelector({pets,activeIndex,onActiveIndexChange}:{pets:PetViewModel[]
   </section>;
 }
 
+const quickActions: {label:string;icon:IconName;href:(petId:string)=>string;tone:string}[]=[
+  {label:'Записать вес',icon:'settings',href:petId=>`/pets/${petId}/health/weight/new`,tone:'blue'},
+  {label:'Визит к врачу',icon:'heart',href:petId=>`/pets/${petId}/health/new?kind=visit`,tone:'rose'},
+  {label:'Процедура',icon:'paw',href:petId=>`/pets/${petId}/care/procedures/new`,tone:'lilac'},
+  {label:'Кормление',icon:'bowl',href:petId=>`/pets/${petId}/nutrition/new`,tone:'sand'},
+];
+
+function QuickActions({petId}:{petId:string}){
+  const t=useT();
+  return <section className="quickAdd" aria-labelledby="quick-add-heading">
+    <h2 id="quick-add-heading">{t('Быстро добавить')}</h2>
+    <div>{quickActions.map(action=><Link prefetch={true} href={action.href(petId)} className={`quickAction ${action.tone}`} key={action.label}><span><Icon name={action.icon} size={21}/></span><strong>{t(action.label)}</strong><NavigationHint/></Link>)}</div>
+  </section>;
+}
+
 function SectionCard({ section, petId }: { section: (typeof sections)[number]; petId: string }) {
   const t=useT();
   const content = <><span className="cardArrow">›</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{t(section.title)}</strong><small>{t(section.description)}</small></>;
@@ -120,7 +135,7 @@ export function BottomNav({active}:{active:NavKey}){
 function HomeContent({ pets, activePetIndex, onActivePetIndexChange,notices,shopping,noticeScope,noticeError }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void;notices:Notice[];shopping:Notice[];noticeScope:string;noticeError:boolean }) {
   const t=useT();
   const activePet = pets[activePetIndex] ?? pets[0];
-  return <><TopBar notices={notices} scope={noticeScope} error={noticeError}/><PetSelector pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><section className="sectionGrid" aria-label={t("Разделы питомца")}>{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/>{shopping.length>0&&<section className="shoppingReminders" aria-label={t('Пора купить')}><div className="shoppingHeading"><h2>{t('Пора купить')}</h2><Link href="/stock?status=low">{t('Все запасы')} →</Link></div>{shopping.map(item=><Link className="shoppingReminder" key={item.id} href={item.href}><span className="cardIcon"><Icon name="stock" size={22}/></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><span aria-hidden="true">›</span></Link>)}</section>}{noticeError&&<p className="notificationHint" role="status">{t('Часть уведомлений не удалось загрузить. Обновите страницу.')}</p>}</>;
+  return <><TopBar notices={notices} scope={noticeScope} error={noticeError}/><PetSelector pets={pets} activeIndex={activePetIndex} onActiveIndexChange={onActivePetIndexChange}/><QuickActions petId={activePet.id}/><section className="sectionGrid" aria-label={t("Разделы питомца")}>{sections.map((section) => <SectionCard key={section.title} section={section} petId={activePet.id}/>)}</section><Reminder pet={activePet}/>{shopping.length>0&&<section className="shoppingReminders" aria-label={t('Пора купить')}><div className="shoppingHeading"><h2>{t('Пора купить')}</h2><Link href="/stock?status=low">{t('Все запасы')} →</Link></div>{shopping.map(item=><Link className="shoppingReminder" key={item.id} href={item.href}><span className="cardIcon"><Icon name="stock" size={22}/></span><span><strong>{item.title}</strong><small>{item.detail}</small></span><span aria-hidden="true">›</span></Link>)}</section>}{noticeError&&<p className="notificationHint" role="status">{t('Часть уведомлений не удалось загрузить. Обновите страницу.')}</p>}</>;
 }
 
 function MoreScreen() {

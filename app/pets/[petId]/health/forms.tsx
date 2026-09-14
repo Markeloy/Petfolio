@@ -2,13 +2,13 @@
 import {useT} from "@/lib/i18n/client";
 
 import { useActionState,useState } from 'react';
-import { healthKinds,healthStatuses,type HealthEvent } from '@/lib/health/types';
+import { healthKinds,healthStatuses,type HealthEvent,type HealthKind } from '@/lib/health/types';
 import type { Database } from '@/lib/supabase/database.types';
 import { saveHealth,saveWeight,archiveRecord } from './actions';
-export function HealthForm({petId,id,event,today,repeat}:{petId:string;id:string;event?:HealthEvent;today:string;repeat?:HealthEvent}) {
+export function HealthForm({petId,id,event,today,repeat,initialKind}:{petId:string;id:string;event?:HealthEvent;today:string;repeat?:HealthEvent;initialKind?:HealthKind}) {
   const t=useT();
   const initial=event??repeat;
-  const [values,setValues]=useState<Record<string,string>>({kind:initial?.kind??'vaccination',title:initial?.title??'',status:event?.status??(repeat?.next_due_on&&repeat.next_due_on>today?'planned':'completed'),event_on:event?.event_on??repeat?.next_due_on??today,next_due_on:event?.next_due_on??'',product:initial?.product??'',clinic:initial?.clinic??'',veterinarian:initial?.veterinarian??'',notes:event?.notes??''});
+  const [values,setValues]=useState<Record<string,string>>({kind:initial?.kind??initialKind??'vaccination',title:initial?.title??'',status:event?.status??(repeat?.next_due_on&&repeat.next_due_on>today?'planned':initialKind==='visit'?'planned':'completed'),event_on:event?.event_on??repeat?.next_due_on??today,next_due_on:event?.next_due_on??'',product:initial?.product??'',clinic:initial?.clinic??'',veterinarian:initial?.veterinarian??'',notes:event?.notes??''});
   const [state,action,pending]=useActionState(saveHealth.bind(null,petId,id,event?.updated_at??null,repeat?{id:repeat.id,version:repeat.updated_at}:null),{error:''});
   const field=(key:string)=>({value:values[key],onChange:(e:React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setValues(v=>({...v,[key]:e.target.value}))});
   return <form action={action} className="healthForm wizardFields">
