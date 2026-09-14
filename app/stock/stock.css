@@ -1,0 +1,27 @@
+.stockContent h1 { margin:16px 0; font-size:32px; overflow-wrap:anywhere; }
+.stockContent h2 { font-size:20px; }
+.stockContent section { padding:18px; margin-top:18px; background:var(--c-fff); border-radius:18px; }
+.stockContent header>p,.stockNote { color:var(--c-716b63); font-size:14px; line-height:1.5; }
+.stockAction { display:inline-block; text-decoration:none; background:#303030; color:var(--on-solid); padding:14px; border-radius:12px; }
+.stockForm { display:grid; gap:12px; margin-top:18px; font-size:14px; }
+.stockForm label { display:grid; gap:6px; }
+.stockForm input:not([type=checkbox]),.stockForm select,.stockForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--c-d8d1c7); border-radius:10px; font:inherit; background:var(--c-fff); color:var(--ink); }
+.stockForm button { min-height:44px; padding:10px; border:0; border-radius:10px; color:var(--on-solid); background:#303030; }
+.stockForm button:disabled { opacity:.6; }
+.stockForm .stockConfirm { display:flex; align-items:flex-start; line-height:1.5; }
+.stockConfirm input { width:18px; height:18px; flex-shrink:0; }
+.stockForm .stockError { color:var(--c-a33626); }
+.stockList,.stockHistory { list-style:none; margin:18px 0; padding:0; display:grid; gap:12px; }
+.stockList a { display:grid; gap:8px; background:var(--c-fff); padding:18px; border-radius:16px; text-decoration:none; overflow-wrap:anywhere; }
+.stockList span { font-size:13px; color:var(--c-716b63); }
+.stockList em { color:var(--c-9d4a2d); font-style:normal; font-size:14px; }
+.stockList b { font-size:22px; }
+.stockEmpty { padding:24px 0; line-height:1.5; }
+.stockPages { display:flex; justify-content:space-between; gap:16px; margin-top:16px; }
+.stockPages a { padding:10px 0; }
+.stockBalance { font-size:30px; font-weight:600; margin-top:0; }
+.stockHistory li { display:grid; gap:6px; border-bottom:1px solid var(--c-e5dfd6); padding-bottom:16px; overflow-wrap:anywhere; }
+.stockHistory p { margin:0; }
+.stockHistory small { color:var(--c-716b63); line-height:1.5; }
+.stockContent summary { min-height:44px; padding:12px 0; cursor:pointer; }
+.stockNotes { white-space:pre-wrap; overflow-wrap:anywhere; }

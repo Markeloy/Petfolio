@@ -1,0 +1,40 @@
+.profilePhotoCard { display:grid; grid-template-columns:92px 1fr; align-items:center; gap:16px; padding:20px; margin-bottom:14px; border-radius:26px; background:var(--c-e7e5df); }
+.profilePhotoPreview { width:92px; height:92px; overflow:hidden; display:grid; place-items:center; border:5px solid var(--c-fff); border-radius:50%; background:var(--c-d9cec2); box-shadow:0 10px 24px rgba(73,58,43,.12); }
+.profilePhotoPreview img { width:100%; height:100%; object-fit:cover; display:block; }
+.profilePhotoPreview span { font-size:34px; }
+.profilePhotoCard h2 { margin:0; font-family:Georgia,serif; font-size:22px; line-height:1.1; }
+.profilePhotoCard p:last-child { margin:7px 0 0; color:var(--muted); font-size:11px; line-height:1.45; }
+.profileInfoSection { margin-top:18px; }
+.profileDataList { display:grid; gap:0; margin:16px 0 0; }
+.profileDataList div { display:flex; justify-content:space-between; gap:16px; padding:11px 0; border-bottom:1px solid var(--c-eee8df); }
+.profileDataList div:last-child { border-bottom:0; }
+.profileDataList dt { color:var(--muted); font-size:11px; }
+.profileDataList dd { margin:0; max-width:58%; text-align:right; font-size:11px; font-weight:700; overflow-wrap:anywhere; }
+.profileNotes { margin:14px 0 0; padding:13px; border-radius:15px; background:var(--c-f4f0e9); color:var(--c-69645d); font-size:11px; line-height:1.45; }
+
+.scheduleDays { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+.scheduleDays legend { margin-bottom: 10px; font-weight: 600; }
+.scheduleDayOptions { display: flex; flex-wrap: wrap; gap: 12px; }
+.scheduleDayOptions label { display: flex; flex-direction: row; align-items: center; gap: 6px; min-height: 44px; }
+.scheduleDayOptions input[type="checkbox"] { width: 20px; height: 20px; min-height: 20px; margin: 0; }
+.courseActions { display: grid; gap: 10px; margin-top: 22px; }
+.courseActions form { margin: 0; }
+.courseActions button:disabled { opacity: .6; cursor: wait; }
+
+.healthShell { font-size:16px; line-height:1.5; }
+.healthShell h1 { overflow-wrap:anywhere; }
+.healthShell h2 { font-size:24px; margin:12px 0; }
+.healthShell h3 { font-size:18px; margin:8px 0; }
+.healthShell small,.healthShell .formSectionHint,.healthShell .wizardFields label > span { font-size:14px; }
+.healthShell .medicationCard p { font-size:16px; }
+.healthShell .inlineAction { display:flex; align-items:center; justify-content:center; text-align:center; text-decoration:none; }
+.healthTabs,.healthActions { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.healthTabs a { padding:10px 16px; background:var(--c-fff); border:1px solid var(--c-ddd6cc); border-radius:14px; color:var(--ink); text-decoration:none; }
+.healthActions > a { flex:1; min-width:160px; }
+.healthForm { display:grid; gap:16px; padding:20px; margin:20px 0; background:var(--c-fff); border-radius:20px; }
+.healthFilters { display:grid; gap:12px; margin:16px 0; }
+.healthNotes { white-space:pre-wrap; overflow-wrap:anywhere; }
+.healthAudit { padding-left:20px; }
+.healthAudit li { margin:12px 0; }
+.archiveControl { margin-top:16px; }
+.healthShell button:disabled { opacity:.5; cursor:wait; }
