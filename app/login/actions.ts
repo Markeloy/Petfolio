@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { analyticsContextFromForm } from "@/lib/analytics/context";
+import { trackServer } from "@/lib/analytics/server";
 import { createClient } from "@/lib/supabase/server";
 
 function authUrl(params: Record<string, string>) {
@@ -11,6 +13,7 @@ function authUrl(params: Record<string, string>) {
 export async function login(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const analyticsContext = analyticsContextFromForm(formData);
 
   if (!email || !password) {
     redirect(authUrl({ error: "Введите email и пароль" }));
@@ -23,6 +26,7 @@ export async function login(formData: FormData) {
     redirect(authUrl({ error: "Не удалось войти. Проверьте email и пароль" }));
   }
 
+  await trackServer(supabase, "login_completed", { auth_method: "password" }, { context: analyticsContext });
   redirect("/");
 }
 
@@ -31,6 +35,7 @@ export async function signup(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
+  const analyticsContext = analyticsContextFromForm(formData);
 
   if (!name || !email || !password) {
     redirect(authUrl({ mode: "signup", error: "Заполните обязательные поля" }));
@@ -56,6 +61,8 @@ export async function signup(formData: FormData) {
   if (error) {
     redirect(authUrl({ mode: "signup", error: "Не удалось создать аккаунт. Возможно, этот email уже используется" }));
   }
+
+  await trackServer(supabase, "signup_completed", { auth_method: "password" }, { context: analyticsContext });
 
   if (data.session) {
     redirect("/onboarding/pet");
