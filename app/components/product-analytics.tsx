@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { acquisitionProperties, getClientAnalyticsContext, trackClient } from '@/lib/analytics/client';
 import type { AnalyticsEventName, AnalyticsIds, AnalyticsProperties } from '@/lib/analytics/events';
-import type { AnalyticsFormContext } from '@/lib/analytics/context';
 
 export function AnalyticsEvent<E extends AnalyticsEventName>({
   event,
@@ -61,13 +60,25 @@ export function LoginAnalytics({ signupMode }: { signupMode: boolean }) {
 }
 
 export function AnalyticsFormFields() {
-  const [context, setContext] = useState<AnalyticsFormContext | null>(null);
-  useEffect(() => setContext(getClientAnalyticsContext()), []);
-  if (!context) return null;
+  const anonymous = useRef<HTMLInputElement>(null);
+  const session = useRef<HTMLInputElement>(null);
+  const surface = useRef<HTMLInputElement>(null);
+  const source = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    try {
+      const context = getClientAnalyticsContext();
+      if (anonymous.current) anonymous.current.value = context.anonymousId ?? '';
+      if (session.current) session.current.value = context.sessionId ?? '';
+      if (surface.current) surface.current.value = context.surface;
+      if (source.current) source.current.value = context.source;
+    } catch {
+      // Optional analytics context must never break form rendering or submission.
+    }
+  }, []);
   return <>
-    <input type="hidden" name="analyticsAnonymousId" value={context.anonymousId ?? ''} />
-    <input type="hidden" name="analyticsSessionId" value={context.sessionId ?? ''} />
-    <input type="hidden" name="analyticsSurface" value={context.surface} />
-    <input type="hidden" name="analyticsSource" value={context.source} />
+    <input ref={anonymous} type="hidden" name="analyticsAnonymousId" defaultValue="" />
+    <input ref={session} type="hidden" name="analyticsSessionId" defaultValue="" />
+    <input ref={surface} type="hidden" name="analyticsSurface" defaultValue="pwa" />
+    <input ref={source} type="hidden" name="analyticsSource" defaultValue="direct" />
   </>;
 }
