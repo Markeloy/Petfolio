@@ -1,7 +1,7 @@
-
 import {getT} from "@/lib/i18n/server";
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { AnalyticsEvent, AnalyticsFormFields, AnalyticsVisibilityEvent } from '@/app/components/product-analytics';
 import { createClient } from '@/lib/supabase/server';
 import { doseKey, formatDose, formatMoment, todayOccurrence } from '@/lib/medications/schedule';
 import { RefreshOnFocus } from '@/app/components/refresh-on-focus';
@@ -44,12 +44,15 @@ export default async function MedicationPage({ params, searchParams }: {
   if (todayResult.error || historyResult.error) throw new Error('Не удалось загрузить отметки приёмов');
   const marks = new Map((todayResult.data ?? []).map(d => [doseKey(d.schedule_id, d.scheduled_for), d]));
   const history = (historyResult.data ?? []).slice(0, 30);
+  const historyCount = historyResult.data?.length ?? 0;
+  const historyCountBucket = historyCount === 0 ? '0' : historyCount <= 2 ? '1-2' : historyCount <= 9 ? '3-9' : historyCount <= 29 ? '10-29' : '30+';
   const authors = [...new Set([...(todayResult.data ?? []), ...history].map(d => d.recorded_by))];
   const profiles = authors.length ? await supabase.from('profiles').select('id,display_name').in('id', authors) : { data: [], error: null };
   if (profiles.error) throw new Error('Не удалось загрузить авторов отметок');
   const names = new Map((profiles.data ?? []).map(p => [p.id, p.display_name]));
   const author = (id: string) => id === auth.claims.sub ? (names.get(id) ? `${names.get(id)} (${t('вы')})` : t('Вы')) : names.get(id) || t('Участник семьи');
   return <main className="detailShell">
+    <AnalyticsEvent event="medication_detail_viewed" properties={{ medication_status: medication.status }} ids={{ petId }} />
     <RefreshOnFocus />
     <div className="detailTopBar"><Link href={`/pets/${petId}/care`} className="backButton" aria-label={t("Назад к уходу")}>‹</Link><div><p className="eyebrow">{pet.name}</p><h1>{medication.name}</h1></div><span className="detailTopSpacer" /></div>
     {query.error && <p className="formNotice errorNotice" role="alert">{t(query.error)}</p>}
@@ -75,11 +78,12 @@ export default async function MedicationPage({ params, searchParams }: {
           <div className="medicationCardTop"><strong><time dateTime={instant}>{formatMoment(instant, schedule.timezone,t('ru-RU'))}</time></strong><span>{mark ? mark.status === 'given' ? t("Дано") : t("Пропущено") : Date.parse(instant) < now.getTime() ? t("Ожидает отметки") : t("Запланировано")}</span></div>
           <p>{formatDose(mark ? mark.dose_amount : medication.dose_amount, mark ? mark.dose_unit : medication.dose_unit,t('ru-RU'))}</p>
           <small>{schedule.timezone}</small>
-          {mark ? <p>{author(mark.recorded_by)} {' '}{t("· отметка")}{' '}{formatMoment(mark.recorded_at, schedule.timezone,t('ru-RU'))}{mark.administered_at && <><br/>{t("Дано:")}{' '}{formatMoment(mark.administered_at, schedule.timezone,t('ru-RU'))}</>}</p> : <form action={recordDose.bind(null, petId, medicationId, schedule.id, instant)}><DoseButtons /></form>}
+          {mark ? <p>{author(mark.recorded_by)} {' '}{t("· отметка")}{' '}{formatMoment(mark.recorded_at, schedule.timezone,t('ru-RU'))}{mark.administered_at && <><br/>{t("Дано:")}{' '}{formatMoment(mark.administered_at, schedule.timezone,t('ru-RU'))}</>}</p> : <form action={recordDose.bind(null, petId, medicationId, schedule.id, instant)}><AnalyticsFormFields /><DoseButtons /></form>}
         </article>;
       })}</div>
     </section>
     <section className="careSection"><h2>{t("История приёмов")}</h2>
+      {page === 0 && <AnalyticsVisibilityEvent event="medication_history_viewed" properties={{ history_count_bucket: historyCountBucket }} ids={{ petId }} />}
       {history.length === 0 && <div className="emptyStateCard">{t("На этой странице пока нет отметок.")}</div>}
       <div className="medicationList">{history.map(dose => {
         const timezone = schedules.find(s => s.id === dose.schedule_id)!.timezone;
