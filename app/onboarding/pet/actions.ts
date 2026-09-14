@@ -21,6 +21,14 @@ function optionalText(formData: FormData, key: string) {
   return value || null;
 }
 
+function onboardingUrl(params: Record<string, string>) {
+  return `/onboarding/pet?${new URLSearchParams(params).toString()}`;
+}
+
+function homeUrl(params: Record<string, string>) {
+  return `/?${new URLSearchParams(params).toString()}`;
+}
+
 export async function createPet(formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
@@ -39,18 +47,18 @@ export async function createPet(formData: FormData) {
   const weight = weightRaw ? Number(weightRaw) : null;
   const avatar = formData.get("avatar");
 
-  if (!name) redirect("/onboarding/pet?error=Укажите имя питомца");
+  if (!name) redirect(onboardingUrl({ error: "Укажите имя питомца" }));
 
   const species = speciesValues.has(speciesRaw) ? speciesRaw as "dog" | "cat" | "bird" | "rodent" | "reptile" | "other" : "other";
   const sex = sexValues.has(sexRaw) ? sexRaw as "male" | "female" | "unknown" : "unknown";
 
   if (weight !== null && (!Number.isFinite(weight) || weight <= 0 || weight > 5000)) {
-    redirect("/onboarding/pet?error=Проверьте значение веса");
+    redirect(onboardingUrl({ error: "Проверьте значение веса" }));
   }
 
   if (avatar instanceof File && avatar.size > 0) {
-    if (avatar.size > 8 * 1024 * 1024) redirect("/onboarding/pet?error=Фото должно быть не больше 8 МБ");
-    if (!avatarMimeTypes.has(avatar.type)) redirect("/onboarding/pet?error=Используйте JPG, PNG, WebP, HEIC или HEIF");
+    if (avatar.size > 8 * 1024 * 1024) redirect(onboardingUrl({ error: "Фото должно быть не больше 8 МБ" }));
+    if (!avatarMimeTypes.has(avatar.type)) redirect(onboardingUrl({ error: "Используйте JPG, PNG, WebP, HEIC или HEIF" }));
   }
 
   const { data: pet, error: petError } = await supabase
@@ -73,7 +81,7 @@ export async function createPet(formData: FormData) {
     .select("id")
     .single();
 
-  if (petError || !pet) redirect("/onboarding/pet?error=Не удалось сохранить питомца");
+  if (petError || !pet) redirect(onboardingUrl({ error: "Не удалось сохранить питомца" }));
 
   if (avatar instanceof File && avatar.size > 0) {
     const extension = avatarExtensions[avatar.type] ?? "jpg";
@@ -94,7 +102,7 @@ export async function createPet(formData: FormData) {
       weight_kg: weight,
       created_by: userId,
     });
-    if (weightError) redirect("/?warning=Питомец сохранён, но вес пока не записан");
+    if (weightError) redirect(homeUrl({ warning: "Питомец сохранён, но вес пока не записан" }));
   }
 
   redirect("/");
