@@ -78,7 +78,7 @@ export default async function MedicationPage({ params, searchParams }: {
           <div className="medicationCardTop"><strong><time dateTime={instant}>{formatMoment(instant, schedule.timezone,t('ru-RU'))}</time></strong><span>{mark ? mark.status === 'given' ? t("Дано") : t("Пропущено") : Date.parse(instant) < now.getTime() ? t("Ожидает отметки") : t("Запланировано")}</span></div>
           <p>{formatDose(mark ? mark.dose_amount : medication.dose_amount, mark ? mark.dose_unit : medication.dose_unit,t('ru-RU'))}</p>
           <small>{schedule.timezone}</small>
-          {mark ? <p>{author(mark.recorded_by)} {' '}{t("· отметка")}{' '}{formatMoment(mark.recorded_at, schedule.timezone,t('ru-RU'))}{mark.administered_at && <><br/>{t("Дано:")}{' '}{formatMoment(mark.administered_at, schedule.timezone,t('ru-RU'))}</>}</p> : <form action={recordDose.bind(null, petId, medicationId, schedule.id, instant)}><AnalyticsFormFields /><DoseButtons /></form>}
+          {mark ? <p>{author(mark.recorded_by)} {' '}{t("· отметка")}{' '}{formatMoment(mark.recorded_at, schedule.timezone,t('ru-RU'))}{mark.administered_at && <><br/>{t("Дано:")}{' '}{formatMoment(mark.administered_at, schedule.timezone,t('ru-RU'))}</>}</p> : <form action={recordDose.bind(null, petId, medicationId, schedule.id, instant)}><AnalyticsFormFields /><DoseButtons petId={petId} /></form>}
         </article>;
       })}</div>
     </section>

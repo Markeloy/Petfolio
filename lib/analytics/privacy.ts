@@ -148,11 +148,13 @@ export const propertyRules: Record<string, Record<string, readonly (string | num
 };
 
 export function validAnalyticsProperties(event: string, properties: unknown): boolean {
+  if (!Object.hasOwn(propertyRules,event)) return false;
   const rules = propertyRules[event];
   if (!rules || !properties || typeof properties !== 'object' || Array.isArray(properties)) return false;
   const values = properties as Record<string, unknown>;
   if (Object.keys(values).length !== Object.keys(rules).length) return false;
   return Object.entries(rules).every(([key, rule]) => {
+    if (!Object.hasOwn(values,key)) return false;
     const value = values[key];
     if (rule === 'boolean') return typeof value === 'boolean';
     if (rule === 'count') return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100;

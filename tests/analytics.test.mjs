@@ -12,5 +12,6 @@ test('analytics rejects private text, unexpected keys and incorrect value types'
  assert.equal(validAnalyticsProperties('landing_viewed',{utm_campaign:'person@example.com'}),false);
  assert.equal(validAnalyticsProperties('app_error_seen',{error_code:'raw_exception_message'}),false);
  assert.equal(validAnalyticsProperties('unknown',{}),false);
+ assert.equal(validAnalyticsProperties('toString',{}),false);
  assert.equal(validAnalyticsProperties('landing_viewed',{}),true);
 });

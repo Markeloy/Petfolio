@@ -85,7 +85,7 @@ export async function createPet(formData: FormData) {
 
   await trackServer(supabase, "pet_created", {
     species,
-    is_first_pet: (existingPetCount ?? 0) === 0,
+    is_first_pet: existingPetCount === 0,
   }, { context: analyticsContext, householdId: membership.household_id, petId: pet.id });
 
   if (avatar instanceof File && avatar.size > 0) {
