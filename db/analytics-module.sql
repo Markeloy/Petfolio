@@ -44,7 +44,7 @@ begin
      or p_source not in ('direct','telegram','vk','referral','rustore','organic','other') then
     raise exception 'Invalid analytics context' using errcode='22023';
   end if;
-  if p_app_version is null or p_app_version !~ '^[0-9]{1,5}\.[0-9]{1,5}\.[0-9]{1,5} then
+  if p_app_version is null or p_app_version !~ '^[0-9]{1,5}[.][0-9]{1,5}[.][0-9]{1,5}$' then
     raise exception 'Invalid app version' using errcode='22023';
   end if;
   if p_properties is null or jsonb_typeof(p_properties) <> 'object' or pg_column_size(p_properties) > 4096 then
@@ -69,63 +69,6 @@ begin
 
   if actor is null then
     if p_event_name not in ('landing_viewed','signup_started','app_error_seen') then
-      raise exception 'Authentication required for this analytics event' using errcode='42501';
-    end if;
-    if p_household_id is not null or p_pet_id is not null then
-      raise exception 'Anonymous analytics cannot reference household data' using errcode='42501';
-    end if;
-    resolved_household := null;
-  else
-    if p_pet_id is not null then
-      select household_id into pet_household from public.pets where id=p_pet_id and archived_at is null;
-      if pet_household is null or not private.is_household_member(pet_household, actor) then
-        raise exception 'Pet unavailable' using errcode='42501';
-      end if;
-      if resolved_household is not null and resolved_household <> pet_household then
-        raise exception 'Household mismatch' using errcode='42501';
-      end if;
-      resolved_household := pet_household;
-    elsif resolved_household is not null and not private.is_household_member(resolved_household, actor) then
-      raise exception 'Household unavailable' using errcode='42501';
-    end if;
-  end if;
-
-  insert into private.analytics_events(
-    event_id,event_name,occurred_at,user_id,anonymous_id,household_id,pet_id,
-    surface,app_version,environment,session_id,source,analytics_schema_version,properties
-  ) values (
-    p_event_id,p_event_name,p_occurred_at,actor,p_anonymous_id,resolved_household,p_pet_id,
-    p_surface,p_app_version,p_environment,p_session_id,p_source,1,p_properties
-  ) on conflict (event_id) do nothing;
-
-  return true;
-end;
-$function$
- then
-    raise exception 'Invalid app version' using errcode='22023';
-  end if;
-  if p_properties is null or jsonb_typeof(p_properties) <> 'object' or pg_column_size(p_properties) > 4096 then
-    raise exception 'Invalid analytics properties' using errcode='22023';
-  end if;
-  if rules is null then
-    raise exception 'Event reserved but not instrumented' using errcode='22023';
-  end if;
-  if (select count(*) from jsonb_object_keys(p_properties)) <> (select count(*) from jsonb_object_keys(rules)) then
-    raise exception 'Invalid analytics property set' using errcode='22023';
-  end if;
-  for property_key,rule in select key,value from jsonb_each(rules) loop
-    if not p_properties ? property_key then raise exception 'Missing analytics property' using errcode='22023'; end if;
-    if jsonb_typeof(rule) = 'array' then
-      if not rule @> jsonb_build_array(p_properties->property_key) then raise exception 'Invalid analytics category' using errcode='22023'; end if;
-    elsif rule = '"boolean"'::jsonb then
-      if jsonb_typeof(p_properties->property_key) <> 'boolean' then raise exception 'Invalid analytics boolean' using errcode='22023'; end if;
-    elsif rule = '"count"'::jsonb then
-      if jsonb_typeof(p_properties->property_key) <> 'number' or (p_properties->>property_key) !~ '^(0|[1-9][0-9]?|100)$' then raise exception 'Invalid analytics count' using errcode='22023'; end if;
-    end if;
-  end loop;
-
-  if actor is null then
-    if p_event_name not in ('landing_viewed','signup_started','signup_completed') then
       raise exception 'Authentication required for this analytics event' using errcode='42501';
     end if;
     if p_household_id is not null or p_pet_id is not null then
