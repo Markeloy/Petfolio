@@ -123,3 +123,11 @@ The full list is in the branch diff against b81c5c841e304847d6014f05fbc764b6cd18
 - DB: analytics module/metrics, atomic creation functions, exact migration.
 - Tests: analytics privacy/outcomes, atomic medication/pet SQL, analytics SQL, isolated scaffold/runner, HTTP smoke.
 - Documentation and .env.example.
+
+## Deployment follow-up
+
+Amvera runtime preparation is now implemented: amvera.yml, the production launcher and explicit public runtime configuration. The earlier requirement to supply NEXT_PUBLIC values during build is superseded; Amvera provides environment variables at launch only. CI now builds without Supabase settings and starts with runtime settings, checking their safe delivery in HTML. See the updated Russian deployment guide.
+
+An RU/EN /about page is linked from login and settings. It describes actual data handling, beta limitations and a configurable organiser/contact. It is an informational surface, not a claim that operator identity, retention/deletion policy and jurisdiction-specific legal terms have been finalised. Set real organiser/contact details before inviting testers.
+
+Hosting configuration is ready for the owner's deployment; a real Amvera deployment and authenticated/mobile acceptance remain unverified. No database change was needed in this follow-up.

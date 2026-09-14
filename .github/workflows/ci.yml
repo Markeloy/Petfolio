@@ -46,8 +46,8 @@ jobs:
       - name: Isolated database tests
         run: npm run test:db
 
-      - name: Production build
-        run: npm run build
+      - name: Production build without runtime credentials
+        run: env -u NEXT_PUBLIC_SUPABASE_URL -u NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY npm run build
 
       - name: HTTP smoke test
         run: node tests/http-smoke.mjs
