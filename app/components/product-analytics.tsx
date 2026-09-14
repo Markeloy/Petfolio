@@ -23,6 +23,32 @@ export function AnalyticsEvent<E extends AnalyticsEventName>({
   return null;
 }
 
+export function AnalyticsVisibilityEvent<E extends AnalyticsEventName>({
+  event,
+  properties,
+  ids,
+}: {
+  event: E;
+  properties: AnalyticsProperties<E>;
+  ids?: AnalyticsIds;
+}) {
+  const marker = useRef<HTMLSpanElement | null>(null);
+  const fired = useRef(false);
+  useEffect(() => {
+    const node = marker.current;
+    if (!node || fired.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting) || fired.current) return;
+      fired.current = true;
+      observer.disconnect();
+      void trackClient(event, properties, ids);
+    }, { threshold: 0.1 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [event, ids, properties]);
+  return <span ref={marker} aria-hidden="true" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }} />;
+}
+
 export function LoginAnalytics({ signupMode }: { signupMode: boolean }) {
   const fired = useRef(false);
   useEffect(() => {
