@@ -13,7 +13,11 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     theme_color: theme==='dark'?'#181818':'#f7f7f8',
     lang: locale,
     orientation: "portrait-primary",
+    id: '/',
+    scope: '/',
     icons: [
+      {src:'/icons/192',sizes:'192x192',type:'image/png',purpose:'any'},
+      {src:'/icons/512',sizes:'512x512',type:'image/png',purpose:'any'},
       {
         src: "/petfolio-icon.svg",
         sizes: "any",

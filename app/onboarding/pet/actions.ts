@@ -1,5 +1,6 @@
 "use server";
 
+import type { Json } from "@/lib/supabase/database.types";
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { analyticsContextFromForm } from "@/lib/analytics/context";
@@ -27,9 +28,6 @@ function onboardingUrl(params: Record<string, string>) {
   return `/onboarding/pet?${new URLSearchParams(params).toString()}`;
 }
 
-function homeUrl(params: Record<string, string>) {
-  return `/?${new URLSearchParams(params).toString()}`;
-}
 
 export async function createPet(formData: FormData) {
   const supabase = await createClient();
@@ -70,25 +68,18 @@ export async function createPet(formData: FormData) {
     .eq("household_id", membership.household_id)
     .is("archived_at", null);
 
-  const { data: pet, error: petError } = await supabase
-    .from("pets")
-    .insert({
-      household_id: membership.household_id,
-      created_by: userId,
-      name,
-      species,
-      sex,
-      birth_date: birthDate,
-      breed: optionalText(formData, "breed"),
-      color: optionalText(formData, "color"),
-      microchip_number: optionalText(formData, "microchip"),
-      passport_number: optionalText(formData, "passport"),
-      vet_clinic: optionalText(formData, "clinic"),
-      veterinarian: optionalText(formData, "veterinarian"),
-      notes: optionalText(formData, "notes"),
-    })
-    .select("id")
-    .single();
+  const rpc = supabase as unknown as {
+    rpc(name:'create_pet_with_weight',args:{p_household_id:string;p_values:Json;p_weight:number|null}):Promise<{data:string|null;error:unknown}>;
+  };
+  const {data:petId,error:petError}=await rpc.rpc('create_pet_with_weight',{
+    p_household_id:membership.household_id,p_weight:weight,p_values:{
+      name,species,sex,birth_date:birthDate,
+      breed:optionalText(formData,'breed'),color:optionalText(formData,'color'),
+      microchip_number:optionalText(formData,'microchip'),passport_number:optionalText(formData,'passport'),
+      vet_clinic:optionalText(formData,'clinic'),veterinarian:optionalText(formData,'veterinarian'),notes:optionalText(formData,'notes'),
+    },
+  });
+  const pet=petId?{id:petId}:null;
 
   if (petError || !pet) redirect(onboardingUrl({ error: "Не удалось сохранить питомца" }));
 
@@ -111,12 +102,6 @@ export async function createPet(formData: FormData) {
   }
 
   if (weight !== null) {
-    const { error: weightError } = await supabase.from("weight_records").insert({
-      pet_id: pet.id,
-      weight_kg: weight,
-      created_by: userId,
-    });
-    if (weightError) redirect(homeUrl({ warning: "Питомец сохранён, но вес пока не записан" }));
     await trackServer(supabase, "weight_recorded", { is_first_weight: true }, {
       context: analyticsContext,
       householdId: membership.household_id,

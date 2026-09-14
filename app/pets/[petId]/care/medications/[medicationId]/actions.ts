@@ -56,13 +56,14 @@ export async function recordDose(petId: string, medicationId: string, scheduleId
   const expected = todayOccurrence(schedule!, medication!);
   if (!expected || expected !== scheduledFor) fail('Расписание изменилось или наступил новый день. Проверьте актуальные приёмы.');
   // Author and dosage snapshot are set inside the invoker RPC, never by this form.
-  const { data, error } = await supabase.rpc('record_medication_dose', {
+  const result = await supabase.rpc('record_medication_dose', {
     p_schedule_id: scheduleId, p_scheduled_for: expected!, p_status: status as 'given' | 'skipped',
-  });
+  }).then(value => value, () => ({ data: null, error: { code: 'NETWORK' } }));
+  const {data,error}=result;
   if (error || !data?.[0]?.id) {
     await trackServer(supabase, 'dose_record_failed', {
-      error_code: error?.code === '42501' ? 'dose_access_denied' : 'dose_write_failed',
-      failure_class: error?.code === '42501' ? 'rls' : 'server',
+      error_code: error?.code === '42501' ? 'dose_access_denied' : error?.code === 'NETWORK' ? 'dose_network_failed' : 'dose_write_failed',
+      failure_class: error?.code === '42501' ? 'rls' : error?.code === 'NETWORK' ? 'network' : 'server',
     }, { petId, context: analyticsContextFromForm(formData) });
     fail('Не удалось сохранить отметку. Обновите страницу и попробуйте снова.');
   }

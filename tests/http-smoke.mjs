@@ -38,6 +38,13 @@ try {
   const missing=await get('/missing-smoke-route');assert.equal(missing.status,404);assert.ok((await missing.text()).includes('Запись недоступна'));
   const manifest=await get('/manifest.webmanifest');assert.equal((await manifest.json()).name,'Petfolio');
   assert.equal((await get('/sw.js')).status,200);
+  for(const size of [192,512]) {
+    const icon=await get('/icons/'+size);assert.equal(icon.status,200);
+    assert.match(icon.headers.get('content-type'),/image\/png/);
+    const bytes=Buffer.from(await icon.arrayBuffer());
+    assert.equal(bytes.subarray(1,4).toString(),'PNG');
+    assert.equal(bytes.readUInt32BE(16),size);assert.equal(bytes.readUInt32BE(20),size);
+  }
   console.log('PASS: production startup, RU/EN rendering, three SSR themes, 14 protected routes, private-file 401/no-store, Russian 404, manifest and service worker. No authenticated workflow or browser layout was tested.');
 } finally {
   server.kill();if(server.exitCode===null)await once(server,'exit');
