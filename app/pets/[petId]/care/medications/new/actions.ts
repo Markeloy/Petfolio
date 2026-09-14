@@ -9,6 +9,14 @@ function optionalText(formData: FormData, key: string) {
   return value || null;
 }
 
+function medicationFormUrl(petId: string, params: Record<string, string>) {
+  return `/pets/${petId}/care/medications/new?${new URLSearchParams(params).toString()}`;
+}
+
+function careUrl(petId: string, params: Record<string, string>) {
+  return `/pets/${petId}/care?${new URLSearchParams(params).toString()}`;
+}
+
 export async function createMedication(petId: string, formData: FormData) {
   const supabase = await createClient();
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
@@ -26,12 +34,12 @@ export async function createMedication(petId: string, formData: FormData) {
   if (!pet) redirect("/auth/error?reason=pet");
 
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) redirect(`/pets/${petId}/care/medications/new?error=Укажите название лекарства`);
+  if (!name) redirect(medicationFormUrl(petId, { error: "Укажите название лекарства" }));
 
   const doseRaw = String(formData.get("doseAmount") ?? "").trim().replace(",", ".");
   const doseAmount = doseRaw ? Number(doseRaw) : null;
   if (doseAmount !== null && (!Number.isFinite(doseAmount) || doseAmount <= 0)) {
-    redirect(`/pets/${petId}/care/medications/new?error=Проверьте дозировку`);
+    redirect(medicationFormUrl(petId, { error: "Проверьте дозировку" }));
   }
 
   const startsOn = String(formData.get("startsOn") ?? "").trim() || new Date().toISOString().slice(0, 10);
@@ -51,7 +59,7 @@ export async function createMedication(petId: string, formData: FormData) {
   else if (!daysOfWeek.length || daysOfWeek.some(day => !Number.isInteger(day) || day < 1 || day > 7)) validationError = "Выберите дни приёма";
   try { new Intl.DateTimeFormat("ru-RU", { timeZone: timezone }).format(); }
   catch { validationError = "Выберите корректный часовой пояс"; }
-  if (validationError) redirect(`/pets/${petId}/care/medications/new?error=${encodeURIComponent(validationError)}`);
+  if (validationError) redirect(medicationFormUrl(petId, { error: validationError }));
 
   const { data: medication, error: medicationError } = await supabase
     .from("medications")
@@ -70,7 +78,7 @@ export async function createMedication(petId: string, formData: FormData) {
     .single();
 
   if (medicationError || !medication) {
-    redirect(`/pets/${petId}/care/medications/new?error=Не удалось сохранить лекарство`);
+    redirect(medicationFormUrl(petId, { error: "Не удалось сохранить лекарство" }));
   }
 
   if (times.length > 0) {
@@ -86,7 +94,7 @@ export async function createMedication(petId: string, formData: FormData) {
 
     const { error: scheduleError } = await supabase.from("medication_schedules").insert(scheduleRows);
     if (scheduleError) {
-      redirect(`/pets/${petId}/care?warning=Лекарство сохранено, но расписание нужно проверить`);
+      redirect(careUrl(petId, { warning: "Лекарство сохранено, но расписание нужно проверить" }));
     }
   }
 
