@@ -1,7 +1,7 @@
-
 import {getT} from "@/lib/i18n/server";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AnalyticsFormFields } from "@/app/components/product-analytics";
 import { createClient } from "@/lib/supabase/server";
 import { ScheduleFields } from "./schedule-fields";
 import { SaveButton } from "./save-button";
@@ -44,6 +44,7 @@ export default async function NewMedicationPage({ params, searchParams }: { para
     </div>
 
     <form className="medicationForm" action={action}>
+      <AnalyticsFormFields />
       {error ? <p className="formNotice errorNotice" role="alert">{t(error)}</p> : null}
 
       <section className="formSectionCard">
