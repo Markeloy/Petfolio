@@ -1,10 +1,10 @@
+import {publicConfig} from '@/lib/config/public';
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
 export async function updateSession(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const {supabaseUrl:url,publishableKey}=publicConfig();
 
   if (!url || !publishableKey) {
     return NextResponse.next({ request });

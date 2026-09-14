@@ -41,3 +41,6 @@ Definitions in that query:
 ## Validation
 
 CI runs JS privacy validation, actual dose-action tests with failed/rejected/timed-out analytics, and isolated PostgreSQL checks for categorical validation, private access, auth identity, signup deduplication, event deduplication and household isolation.
+
+## Amvera runtime configuration
+Public Supabase and analytics configuration is now delivered in the root HTML from runtime environment variables. The explicit public allowlist excludes secret/service-role keys. Restart after changing the environment; build-time NEXT_PUBLIC injection is not required. CI starts a build with different runtime settings and checks the resulting HTML configuration. Owner/contact configuration is rendered only on /about.

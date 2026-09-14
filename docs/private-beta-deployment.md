@@ -1,37 +1,70 @@
-# Private beta deployment handoff
+# Petfolio: размещение на Amvera
 
-No hosting deployment was performed in this session. Deploy **codex/-petfolio**, not main, only after its latest full CI succeeds.
+Подготовлена конфигурация amvera.yml для Node 24, сборки Next.js и порта 3000. Фактического развёртывания в аккаунте Amvera ещё не было.
 
-Petfolio is a server-rendered Next.js application with Server Actions; use a Node.js server host. A static-files-only deployment is insufficient. Node 24 is the version exercised by CI.
+## Что теперь отличается от прошлой инструкции
 
-## Build and start contract
+Amvera сообщает, что переменные доступны при запуске, но не при сборке:
+https://docs.amvera.ru/applications/configuration/variables.html
 
-Build:
-```sh
-npm ci
-npm run build
-```
+Поэтому публичные настройки Supabase и аналитики теперь передаются браузеру из серверного окружения при открытии страницы. Ключи не нужно записывать в код или передавать в сборку. После изменения настроек перезапустите приложение. В браузер попадает только явно перечисленная публичная конфигурация; service-role/secret key не принимается.
 
-Run:
-```sh
-npm run start -- --hostname 0.0.0.0 --port 3000
-```
+## Порядок запуска
 
-Configure the host's public HTTPS ingress to the selected port. Store uploads in the existing private Supabase Storage buckets; do not make local application files an upload store.
+1. Войдите в Amvera и создайте ресурс типа «Приложение». Выберите подключение своего GitHub-репозитория Markeloy/Petfolio.
+2. Для развёртывания выберите ветку **codex/-petfolio**, не main. Дождитесь успешного CI этой ветки. Если интерфейс предлагает только другую ветку, не меняйте GitHub main: используйте поддерживаемое подключение нужной ветки или загрузку архива именно codex/-petfolio.
+3. Используйте файл amvera.yml из корня проекта. Окружение — Node.js Server, Node 24, внутренний порт 3000. Конфигурация уже содержит сборку и команду запуска. Не выбирайте статический Node.js Browser.
+4. Откройте раздел «Переменные». Добавьте значения из таблицы ниже, затем выполните пересборку/запуск. Дальнейшие изменения значений требуют перезапуска.
+5. Подключите HTTPS-адрес приложения через настройки домена/сетевого доступа Amvera. Скопируйте выданный адрес целиком.
+6. В Supabase откройте Authentication → URL Configuration. Site URL — полученный HTTPS-адрес. В Redirect URLs добавьте адрес с /auth/confirm. Не используйте localhost для онлайн-беты.
+7. Проверьте шаблон Confirm signup в Supabase: ссылка должна иметь вид `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`. Запросите новое письмо и проверьте переход на ваш адрес.
+8. Откройте приложение по HTTPS, зарегистрируйте тестовый аккаунт, подтвердите email, создайте питомца. Проверьте /about: там должны отображаться ваши настоящие контактные данные.
+9. Пройдите короткую приёмку ниже. После успешной проверки можно передавать друзьям обычную HTTPS-ссылку.
 
-Before building, set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_APP_ENV (staging for rehearsal; production for the real cohort), NEXT_PUBLIC_APP_VERSION (numeric x.y.z), and NEXT_PUBLIC_APP_SURFACE=pwa. Make the Supabase URL/key available at runtime too. NEXT_PUBLIC values are baked into the browser build: changing only runtime variables is not sufficient. Never use a service-role key as a publishable key.
+Названия отдельных кнопок Amvera могут меняться. Официальная инструкция окружения:
+https://docs.amvera.ru/applications/environments/nodejs-server.html
 
-In Supabase Auth set the real Site URL and allow the deployed /auth/confirm redirect. Configure the confirmation template to use the application's token_hash confirmation callback with type=signup or type=email. Test the actual email/link; the repository cannot verify dashboard configuration or delivery. Do not add unbounded wildcard redirect hosts.
+## Переменные Amvera
 
-Amvera is a possible Node/Docker host, but no Amvera account/project/domain is connected here and its deployment has not been verified. Choose its current Node deployment flow and apply the build/start contract above; review provider-specific environment/port settings in the [official Amvera documentation](https://docs.amvera.ru/). No new database, native rewrite or Android shell is needed to host this PWA. Next.js describes its [Node/Docker deployment options](https://nextjs.org/docs/app/getting-started/deploying).
+| Название | Значение |
+|---|---|
+| NEXT_PUBLIC_SUPABASE_URL | URL существующего проекта Supabase |
+| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Публичный ключ проекта, начинается с sb_publishable_ |
+| NEXT_PUBLIC_APP_ENV | staging для своей проверки; production перед приглашением реальных участников |
+| NEXT_PUBLIC_APP_VERSION | 0.1.0 |
+| NEXT_PUBLIC_APP_SURFACE | pwa |
+| PETFOLIO_OPERATOR_NAME | Ваше настоящее имя / название организатора тестирования |
+| PETFOLIO_SUPPORT_EMAIL | Ваша рабочая почта для обратной связи и запросов о данных |
 
-Applied DB migration: 20260914154626_beta_atomic_creation_and_private_analytics_v1. Do not rerun old non-idempotent db/* module creation scripts against the existing project. The exact new migration is recorded in db/migrations.
+Существующий Supabase-проект и приватные Storage buckets сохраняются. Новый сервер базы на Amvera не требуется. Пароль базы, service_role и sb_secret в приложение не добавляйте.
 
-Acceptance gate: docs/beta-readiness-2026-09-14.md. Use real account/browser testing on the HTTPS domain before inviting users.
+Первый запуск без публичного ключа остановится с сообщением о названиях нужных настроек, без вывода их значений. Это исправляется добавлением переменных и перезапуском.
 
-## Updating the owner's existing Windows checkout
+## Минимальная приёмка по онлайн-ссылке
 
-First stop the dev server with Ctrl+C. Inspect git status; preserve any local changes rather than overwriting them. Then:
+- Вход → подтверждение email → питомец с весом → обновление страницы.
+- Лекарство с двумя временами → «Дано» / «Пропущено» → история после обновления.
+- Один приём одновременно в двух вкладках: первая отметка сохраняется без дубля.
+- Документ загрузился и открывается; без входа закрыт.
+- Запасы ниже порога появились на Home; уведомления открываются колокольчиком.
+- RU/EN, светлая/тёмная тема; установка PWA и запуск с экрана телефона.
+- Чужой аккаунт не открывает ваши записи и файлы.
+
+Полный список: docs/beta-readiness-2026-09-14.md.
+
+Страница /about описывает фактическую работу с данными и ограничения беты. Она не заменяет согласованные правовые условия: до приглашения подтвердите контакт, порядок обработки запросов удаления и сроки хранения. Не обещайте автоматическое удаление или срок ответа, которые ещё не организованы.
+
+## Если что-то не открывается
+
+- 502/503: проверьте журнал запуска и порт 3000; приложение должно слушать 0.0.0.0.
+- Сообщение о конфигурации: исправьте названные переменные, затем перезапустите.
+- Письмо ведёт на localhost: исправьте Supabase Site URL/шаблон и запросите новое письмо.
+- В браузере ошибка Supabase: проверьте URL и public key от одного проекта; не заменяйте их secret key.
+- Не работают фото/файлы: не открывайте Storage публично; проверьте вход и доступ к питомцу.
+
+## Локальное обновление в VS Code
+
+Остановите сервер Ctrl+C, выполните git status. Если есть ваши изменения, сохраните их перед слиянием.
 
 ```powershell
 cd C:\Users\coolm\Petfolio\Petfolio
@@ -42,6 +75,6 @@ npm.cmd run build
 npm.cmd run start
 ```
 
-Open http://localhost:3000 for a production-build preview. Existing .env.local stays on the owner's machine. Set NEXT_PUBLIC_APP_ENV=development locally before rebuilding so checks do not enter the production cohort.
+Локально используйте NEXT_PUBLIC_APP_ENV=development в .env.local. Превью: http://localhost:3000. Локальное превью не является ссылкой для друзей.
 
-If merge reports local/untracked files, stop and resolve that concrete conflict; do not use reset --hard or delete files blindly. This local preview is not a hosted beta URL and cannot replace the HTTPS mobile acceptance test.
+Миграция базы 20260914154626_beta_atomic_creation_and_private_analytics_v1 уже применена. Повторно запускать старые db/* скрипты не нужно.

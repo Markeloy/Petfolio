@@ -22,5 +22,6 @@ export default async function Settings({searchParams}:{searchParams:Promise<{sav
     {(await searchParams).saved==='1'&&<p role="status" className="formNotice successNotice">{t("Настройки сохранены")}</p>}
     <SettingsForm name={display_name??''} timezone={timezone} version={updated_at} zones={zones} key={updated_at}/></section>
     <section className="formSectionCard"><h2>{t("Напоминания")}</h2><p>{t("Ближайшие события доступны на главной и в календаре. Уведомления при закрытом приложении пока не подключены.")}</p><Link href="/calendar">{t("Открыть календарь →")}</Link></section>
+    <p><Link href="/about">{t("О бете и ваших данных")}</Link></p>
   </main>;
 }

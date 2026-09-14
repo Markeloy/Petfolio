@@ -9,7 +9,7 @@ async function compile(path,adapters={}) {
  for(const [name,url] of Object.entries(adapters))code=code.replaceAll("'"+name+"'",JSON.stringify(url)).replaceAll('"'+name+'"',JSON.stringify(url));
  return moduleUrl(code);
 }
-const events=await compile('lib/analytics/events.ts');
+const events=await compile('lib/analytics/events.ts',{'../config/public.ts':new URL('../lib/config/public.ts',import.meta.url).href});
 const server=await compile('lib/analytics/server.ts',{'./events':events,'./privacy':new URL('../lib/analytics/privacy.ts',import.meta.url).href});
 const {trackServer}=await import(server);
 const redirectAdapter=moduleUrl("export function redirect(path){throw Object.assign(new Error('redirect'),{path});}");

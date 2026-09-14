@@ -1,3 +1,4 @@
+import {publicConfig} from '../config/public.ts';
 export const analyticsEventNames = [
   'landing_viewed',
   'signup_started',
@@ -100,10 +101,10 @@ export type AnalyticsIds = {
 };
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
-export const ANALYTICS_APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.1.0';
+export const ANALYTICS_APP_VERSION = publicConfig().appVersion;
 
 export function analyticsEnvironment(): AnalyticsEnvironment {
-  const configured = process.env.NEXT_PUBLIC_APP_ENV;
+  const configured = publicConfig().environment;
   if (configured === 'production' || configured === 'staging' || configured === 'development') return configured;
   return process.env.NODE_ENV === 'production' ? 'production' : 'development';
 }

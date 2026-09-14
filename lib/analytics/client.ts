@@ -1,4 +1,5 @@
 'use client';
+import {publicConfig} from '../config/public.ts';
 import { validAnalyticsProperties } from './privacy';
 
 import { createClient } from '@/lib/supabase/client';
@@ -69,7 +70,7 @@ function acquisitionSource(): AnalyticsSource {
 }
 
 function surface(): AnalyticsSurface {
-  const configured = process.env.NEXT_PUBLIC_APP_SURFACE;
+  const configured = publicConfig().surface;
   if (configured === 'android_rustore' || configured === 'pwa' || configured === 'web_desktop') return configured;
   if (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)) return 'pwa';
   return 'web_desktop';

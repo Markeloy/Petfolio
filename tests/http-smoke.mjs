@@ -3,8 +3,8 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import assert from 'node:assert/strict';
 const port=3187,base=`http://127.0.0.1:${port}`;
-const server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--port',String(port),'--hostname','127.0.0.1'],{
-  cwd:new URL('..',import.meta.url),env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:9',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_local_smoke_test'},stdio:['ignore','pipe','pipe'],
+const server=spawn(process.execPath,['scripts/start-production.mjs'],{
+  cwd:new URL('..',import.meta.url),env:{...process.env,PORT:String(port),PETFOLIO_HOST:'127.0.0.1',NEXT_PUBLIC_APP_ENV:'staging',NEXT_PUBLIC_APP_VERSION:'0.9.8',NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:9',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_local_smoke_test'},stdio:['ignore','pipe','pipe'],
 });
 let log='';server.stdout.on('data',chunk=>log+=chunk);server.stderr.on('data',chunk=>log+=chunk);
 const get=path=>fetch(base+path,{redirect:'manual',signal:AbortSignal.timeout(10000)});
@@ -18,6 +18,18 @@ try {
   for(const [path,label] of [['/login','Добро пожаловать'],['/login?mode=signup','Создать аккаунт']]){
     const response=await get(path);assert.equal(response.status,200,path);assert.ok((await response.text()).includes(label),path);
   }
+  for(const locale of ['ru','en']){
+    const page=await fetch(base+'/about',{headers:{cookie:'petfolio-language='+locale}});
+    assert.equal(page.status,200);
+    const html=await page.text();
+    assert.ok(html.includes(locale==='ru'?'О бете и ваших данных':'About the beta and your data'));
+  }
+  const runtimeHtml=await (await get('/login')).text();
+  const configText=runtimeHtml.match(/<script id="petfolio-public-config" type="application\/json">([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(configText,'public runtime configuration present');
+  const config=JSON.parse(configText);
+  assert.equal(config.supabaseUrl,'http://127.0.0.1:9');
+  assert.equal(config.environment,'staging');assert.equal(config.appVersion,'0.9.8');
   for(const theme of ['light','dark','system']){
     const response=await fetch(base+'/login',{headers:{cookie:`petfolio-language=en; petfolio-theme=${theme}`}});
     const html=await response.text();assert.equal(response.status,200);

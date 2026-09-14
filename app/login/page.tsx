@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <div className="authIntro">
         <span className="authPaw">🐾</span>
         <h1>{signupMode ? t("Создать аккаунт") : t("Добро пожаловать")}</h1>
-        <p>{signupMode ? t("Начните вести здоровье и уход за питомцами всей семьёй.") : t("Войдите, чтобы открыть Petfolio вашей семьи.")}</p>
+        <p>{signupMode ? t("Здоровье, уход и история вашего питомца в одном месте.") : t("Войдите, чтобы открыть Petfolio.")}</p>
       </div>
 
       {params.error ? <p className="formNotice errorNotice" role="alert">{t(params.error)}</p> : null}
@@ -40,6 +40,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <button className="primaryAction" type="submit">{signupMode ? t("Создать аккаунт") : t("Войти")}</button>
       </form>
 
+      <p><Link href="/about">{t("О бете и ваших данных")}</Link></p>
       <p className="authSwitch">{signupMode ? t("Уже есть аккаунт?") : t("Впервые в Petfolio?")} <Link href={signupMode ? "/login" : "/login?mode=signup"}>{signupMode ? t("Войти") : t("Создать аккаунт")}</Link></p>
     </section>
   </main>;

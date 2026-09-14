@@ -1,3 +1,4 @@
+import {serverPublicConfig,serializePublicConfig} from '@/lib/config/public';
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./detail.css";
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang={locale} data-theme={theme}>
       <body>
+        <script id="petfolio-public-config" type="application/json" dangerouslySetInnerHTML={{__html:serializePublicConfig(serverPublicConfig())}} />
         <LanguageProvider locale={locale}>{children}<Suspense fallback={null}><GlobalNavigation/></Suspense></LanguageProvider>
         <PwaRegister />
       </body>
