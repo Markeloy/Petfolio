@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { analyticsContextFromForm } from "@/lib/analytics/context";
+import { trackServer } from "@/lib/analytics/server";
 import { createClient } from "@/lib/supabase/server";
 
 function optionalText(formData: FormData, key: string) {
@@ -13,9 +15,21 @@ function medicationFormUrl(petId: string, params: Record<string, string>) {
   return `/pets/${petId}/care/medications/new?${new URLSearchParams(params).toString()}`;
 }
 
-function careUrl(petId: string, params: Record<string, string>) {
-  return `/pets/${petId}/care?${new URLSearchParams(params).toString()}`;
-}
+type MedicationCourseRpc = {
+  rpc(name: "create_medication_course", args: {
+    p_pet_id: string;
+    p_name: string;
+    p_dose_amount: number | null;
+    p_dose_unit: string | null;
+    p_instructions: string | null;
+    p_starts_on: string;
+    p_ends_on: string | null;
+    p_notes: string | null;
+    p_timezone: string;
+    p_days_of_week: number[];
+    p_times: string[];
+  }): Promise<{ data: string | null; error: { code?: string } | null }>;
+};
 
 export async function createMedication(petId: string, formData: FormData) {
   const supabase = await createClient();
@@ -33,6 +47,7 @@ export async function createMedication(petId: string, formData: FormData) {
 
   if (!pet) redirect("/auth/error?reason=pet");
 
+  const analyticsContext = analyticsContextFromForm(formData);
   const name = String(formData.get("name") ?? "").trim();
   if (!name) redirect(medicationFormUrl(petId, { error: "Укажите название лекарства" }));
 
@@ -61,44 +76,37 @@ export async function createMedication(petId: string, formData: FormData) {
   catch { validationError = "Выберите корректный часовой пояс"; }
   if (validationError) redirect(medicationFormUrl(petId, { error: validationError }));
 
-  const { data: medication, error: medicationError } = await supabase
-    .from("medications")
-    .insert({
-      pet_id: petId,
-      name,
-      dose_amount: doseAmount,
-      dose_unit: optionalText(formData, "doseUnit"),
-      instructions: optionalText(formData, "instructions"),
-      starts_on: startsOn,
-      ends_on: endsOn,
-      notes: optionalText(formData, "notes"),
-      created_by: userId,
-    })
-    .select("id")
-    .single();
+  const rpcClient = supabase as unknown as MedicationCourseRpc;
+  const { data: medicationId, error: medicationError } = await rpcClient.rpc("create_medication_course", {
+    p_pet_id: petId,
+    p_name: name,
+    p_dose_amount: doseAmount,
+    p_dose_unit: optionalText(formData, "doseUnit"),
+    p_instructions: optionalText(formData, "instructions"),
+    p_starts_on: startsOn,
+    p_ends_on: endsOn,
+    p_notes: optionalText(formData, "notes"),
+    p_timezone: timezone,
+    p_days_of_week: daysOfWeek,
+    p_times: times,
+  });
 
-  if (medicationError || !medication) {
+  if (medicationError || !medicationId) {
+    await trackServer(supabase, "critical_action_failed", {
+      error_code: medicationError?.code === "42501" ? "medication_create_rls" : "medication_create_failed",
+      failure_class: medicationError?.code === "42501" ? "rls" : "server",
+    }, { context: analyticsContext, petId });
     redirect(medicationFormUrl(petId, { error: "Не удалось сохранить лекарство" }));
   }
 
-  if (times.length > 0) {
-    const scheduleRows = times.map((time) => ({
-      medication_id: medication.id,
-      scheduled_time: time,
-      days_of_week: daysOfWeek,
-      timezone,
-      active_from: startsOn,
-      active_until: endsOn,
-      created_by: userId,
-    }));
-
-    const { error: scheduleError } = await supabase.from("medication_schedules").insert(scheduleRows);
-    if (scheduleError) {
-      redirect(careUrl(petId, { warning: "Лекарство сохранено, но расписание нужно проверить" }));
-    }
-  }
+  await trackServer(supabase, "medication_created", {
+    schedule_count: times.length,
+    has_end_date: Boolean(endsOn),
+    schedule_type: "daily_time",
+  }, { context: analyticsContext, petId });
 
   revalidatePath('/calendar');
   revalidatePath('/');
-  redirect(`/pets/${petId}/care/medications/${medication.id}`);
+  revalidatePath(`/pets/${petId}/care`);
+  redirect(`/pets/${petId}/care/medications/${medicationId}`);
 }
