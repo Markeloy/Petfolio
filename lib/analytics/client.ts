@@ -1,4 +1,5 @@
 'use client';
+import { validAnalyticsProperties } from './privacy';
 
 import { createClient } from '@/lib/supabase/client';
 import type { Json } from '@/lib/supabase/database.types';
@@ -22,8 +23,9 @@ function newUuid() {
   return crypto.randomUUID();
 }
 
-function storageUuid(storage: Storage, key: string) {
+function storageUuid(getStorage: () => Storage, key: string) {
   try {
+    const storage = getStorage();
     const current = storage.getItem(key);
     if (current && /^[0-9a-f-]{36}$/i.test(current)) return current;
     const next = newUuid();
@@ -75,30 +77,15 @@ function surface(): AnalyticsSurface {
 
 export function getClientAnalyticsContext(): AnalyticsFormContext {
   return {
-    anonymousId: storageUuid(localStorage, anonymousKey),
-    sessionId: storageUuid(sessionStorage, sessionKey),
+    anonymousId: storageUuid(() => localStorage, anonymousKey),
+    sessionId: storageUuid(() => sessionStorage, sessionKey),
     surface: surface(),
     source: acquisitionSource(),
   };
 }
 
-function safeSlug(value: string | null, max = 80) {
-  if (!value) return undefined;
-  const cleaned = value.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, max);
-  return cleaned || undefined;
-}
-
-export function acquisitionProperties() {
-  if (typeof window === 'undefined') return {};
-  const params = new URLSearchParams(window.location.search);
-  let referrer: string | undefined;
-  try { referrer = document.referrer ? new URL(document.referrer).hostname.slice(0, 120) : undefined; } catch { referrer = undefined; }
-  return {
-    utm_source: safeSlug(params.get('utm_source')),
-    utm_campaign: safeSlug(params.get('utm_campaign')),
-    referrer,
-  };
-}
+// Acquisition is represented only by the categorical source. Never retain URLs or UTM text.
+export function acquisitionProperties(): Record<string, never> { return {}; }
 
 type AnalyticsRpcArgs = {
   p_event_id: string;
@@ -125,6 +112,7 @@ export async function trackClient<E extends AnalyticsEventName>(
   ids: AnalyticsIds = {},
 ) {
   try {
+    if (!validAnalyticsProperties(event, properties)) return;
     const context = getClientAnalyticsContext();
     const client = createClient() as unknown as AnalyticsRpcClient;
     const { error } = await client.rpc('track_analytics_event', {

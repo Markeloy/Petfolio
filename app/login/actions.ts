@@ -62,9 +62,8 @@ export async function signup(formData: FormData) {
     redirect(authUrl({ mode: "signup", error: "Не удалось создать аккаунт. Возможно, этот email уже используется" }));
   }
 
-  await trackServer(supabase, "signup_completed", { auth_method: "password" }, { context: analyticsContext });
-
   if (data.session) {
+    await trackServer(supabase, "signup_completed", { auth_method: "password" }, { context: analyticsContext });
     redirect("/onboarding/pet");
   }
 

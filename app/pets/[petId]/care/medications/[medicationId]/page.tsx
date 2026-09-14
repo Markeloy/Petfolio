@@ -52,7 +52,7 @@ export default async function MedicationPage({ params, searchParams }: {
   const names = new Map((profiles.data ?? []).map(p => [p.id, p.display_name]));
   const author = (id: string) => id === auth.claims.sub ? (names.get(id) ? `${names.get(id)} (${t('вы')})` : t('Вы')) : names.get(id) || t('Участник семьи');
   return <main className="detailShell">
-    <AnalyticsEvent event="medication_detail_viewed" properties={{ medication_status: medication.status }} ids={{ petId }} />
+    <AnalyticsEvent key={medicationId} event="medication_detail_viewed" properties={{ medication_status: medication.status }} ids={{ petId }} />
     <RefreshOnFocus />
     <div className="detailTopBar"><Link href={`/pets/${petId}/care`} className="backButton" aria-label={t("Назад к уходу")}>‹</Link><div><p className="eyebrow">{pet.name}</p><h1>{medication.name}</h1></div><span className="detailTopSpacer" /></div>
     {query.error && <p className="formNotice errorNotice" role="alert">{t(query.error)}</p>}
@@ -83,7 +83,7 @@ export default async function MedicationPage({ params, searchParams }: {
       })}</div>
     </section>
     <section className="careSection"><h2>{t("История приёмов")}</h2>
-      {page === 0 && <AnalyticsVisibilityEvent event="medication_history_viewed" properties={{ history_count_bucket: historyCountBucket }} ids={{ petId }} />}
+      {page === 0 && <AnalyticsVisibilityEvent key={medicationId} event="medication_history_viewed" properties={{ history_count_bucket: historyCountBucket }} ids={{ petId }} />}
       {history.length === 0 && <div className="emptyStateCard">{t("На этой странице пока нет отметок.")}</div>}
       <div className="medicationList">{history.map(dose => {
         const timezone = schedules.find(s => s.id === dose.schedule_id)!.timezone;

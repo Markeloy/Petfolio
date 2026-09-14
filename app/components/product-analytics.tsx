@@ -35,7 +35,7 @@ export function AnalyticsVisibilityEvent<E extends AnalyticsEventName>({
   const fired = useRef(false);
   useEffect(() => {
     const node = marker.current;
-    if (!node || fired.current) return;
+    if (!node || fired.current || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting) || fired.current) return;
       fired.current = true;
@@ -49,12 +49,17 @@ export function AnalyticsVisibilityEvent<E extends AnalyticsEventName>({
 }
 
 export function LoginAnalytics({ signupMode }: { signupMode: boolean }) {
-  const fired = useRef(false);
+  const landingFired = useRef(false);
+  const signupFired = useRef(false);
   useEffect(() => {
-    if (fired.current) return;
-    fired.current = true;
-    void trackClient('landing_viewed', acquisitionProperties());
-    if (signupMode) void trackClient('signup_started', {});
+    if (!landingFired.current) {
+      landingFired.current = true;
+      void trackClient('landing_viewed', acquisitionProperties());
+    }
+    if (signupMode && !signupFired.current) {
+      signupFired.current = true;
+      void trackClient('signup_started', {});
+    }
   }, [signupMode]);
   return null;
 }

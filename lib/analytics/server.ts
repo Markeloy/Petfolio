@@ -1,3 +1,4 @@
+import { validAnalyticsProperties } from './privacy';
 import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/supabase/database.types';
@@ -37,10 +38,12 @@ export async function trackServer<E extends AnalyticsEventName>(
   properties: AnalyticsProperties<E>,
   options: AnalyticsIds & { context?: AnalyticsFormContext | null } = {},
 ) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
+    if (!validAnalyticsProperties(event, properties)) return;
     const context = options.context;
     const client = supabase as unknown as AnalyticsRpcClient;
-    await client.rpc('track_analytics_event', {
+    await Promise.race([client.rpc('track_analytics_event', {
       p_event_id: randomUUID(),
       p_event_name: event,
       p_occurred_at: new Date().toISOString(),
@@ -53,8 +56,10 @@ export async function trackServer<E extends AnalyticsEventName>(
       p_session_id: context?.sessionId ?? null,
       p_source: context?.source ?? 'direct',
       p_properties: properties as Json,
-    });
+    }), new Promise<void>(resolve => { timer = setTimeout(resolve, 1000); })]);
   } catch {
-    // Analytics is deliberately best-effort: never roll back or block a product action.
+    // Analytics is deliberately best-effort: never roll back a product action.
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }

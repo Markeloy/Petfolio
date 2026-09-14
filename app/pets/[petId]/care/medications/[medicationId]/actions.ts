@@ -4,6 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { todayOccurrence } from '@/lib/medications/schedule';
 
+import { trackServer } from '@/lib/analytics/server';
+import { analyticsContextFromForm } from '@/lib/analytics/context';
+
 type MedicationStatus = 'active' | 'paused' | 'completed';
 
 export async function setMedicationStatus(petId: string, medicationId: string, formData: FormData) {
@@ -56,7 +59,18 @@ export async function recordDose(petId: string, medicationId: string, scheduleId
   const { data, error } = await supabase.rpc('record_medication_dose', {
     p_schedule_id: scheduleId, p_scheduled_for: expected!, p_status: status as 'given' | 'skipped',
   });
-  if (error || !data?.[0]?.id) fail('Не удалось сохранить отметку. Обновите страницу и попробуйте снова.');
+  if (error || !data?.[0]?.id) {
+    await trackServer(supabase, 'dose_record_failed', {
+      error_code: error?.code === '42501' ? 'dose_access_denied' : 'dose_write_failed',
+      failure_class: error?.code === '42501' ? 'rls' : 'server',
+    }, { petId, context: analyticsContextFromForm(formData) });
+    fail('Не удалось сохранить отметку. Обновите страницу и попробуйте снова.');
+  }
+  await trackServer(supabase, 'dose_recorded', {
+    status: data![0].status,
+    already_recorded: data![0].already_recorded,
+    schedule_type: schedule!.schedule_type,
+  }, { petId, context: analyticsContextFromForm(formData) });
   revalidatePath(path);
   revalidatePath('/calendar');
   revalidatePath(`/pets/${petId}/care`);

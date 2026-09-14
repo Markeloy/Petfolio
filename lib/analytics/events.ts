@@ -49,7 +49,7 @@ export type AnalyticsSource = 'direct' | 'telegram' | 'vk' | 'referral' | 'rusto
 export type FailureClass = 'validation' | 'rls' | 'network' | 'storage' | 'server' | 'unknown';
 
 export type AnalyticsEventMap = {
-  landing_viewed: { utm_source?: string; utm_campaign?: string; referrer?: string };
+  landing_viewed: Record<string, never>;
   signup_started: Record<string, never>;
   signup_completed: { auth_method: 'password' };
   login_completed: { auth_method: 'password' };
@@ -72,7 +72,7 @@ export type AnalyticsEventMap = {
   reminder_completed: { reminder_type: string; completion_type: string };
   reminder_snoozed: { minutes: number };
   reminder_disabled: { reminder_type: string; reason_bucket?: string };
-  health_event_created: { event_type: 'vaccination' | 'parasite' | 'visit' | 'symptom' | 'weight' | 'other' };
+  health_event_created: { event_type: 'vaccination' | 'parasite' | 'visit' | 'symptom' | 'weight' | 'other'; status: 'planned' | 'completed' | 'cancelled' };
   vaccination_recorded: { has_next_due_date: boolean };
   parasite_treatment_recorded: { has_next_due_date: boolean };
   vet_visit_recorded: { has_follow_up_date: boolean };
