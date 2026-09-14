@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     if (!error) {
-      if (type === 'signup') await trackServer(supabase, 'signup_completed', { auth_method: 'password' });
+      if (type === 'signup' || type === 'email') await trackServer(supabase, 'signup_completed', { auth_method: 'password' });
       return NextResponse.redirect(new URL(next, request.url));
     }
   }

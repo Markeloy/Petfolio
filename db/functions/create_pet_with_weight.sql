@@ -15,7 +15,7 @@ BEGIN
  OR (pet.birth_date IS NOT NULL AND (NOT isfinite(pet.birth_date) OR pet.birth_date>(now() AT TIME ZONE coalesce((SELECT timezone FROM public.profiles WHERE id=actor),'UTC'))::date))
  THEN RAISE EXCEPTION 'Invalid pet profile' USING ERRCODE='22023'; END IF;
  FOR k IN SELECT jsonb_object_keys(p_values) LOOP
-  IF length(p_values->>k)>CASE WHEN k='notes' THEN 5000 ELSE 300 END THEN RAISE EXCEPTION 'Pet field too long' USING ERRCODE='22023'; END IF;
+  IF length(p_values->>k)>(CASE WHEN k='notes' THEN 5000 ELSE 300 END) THEN RAISE EXCEPTION 'Pet field too long' USING ERRCODE='22023'; END IF;
  END LOOP;
  IF p_weight IS NOT NULL AND (p_weight::text IN ('NaN','Infinity','-Infinity') OR p_weight<0.001 OR p_weight>5000 OR round(p_weight,3)<>p_weight) THEN
   RAISE EXCEPTION 'Invalid weight' USING ERRCODE='22023';

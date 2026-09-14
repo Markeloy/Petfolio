@@ -26,6 +26,8 @@ export async function login(formData: FormData) {
     redirect(authUrl({ error: "Не удалось войти. Проверьте email и пароль" }));
   }
 
+  // Idempotent in the database; also covers confirmation links that use type=email.
+  await trackServer(supabase, "signup_completed", { auth_method: "password" }, { context: analyticsContext });
   await trackServer(supabase, "login_completed", { auth_method: "password" }, { context: analyticsContext });
   redirect("/");
 }

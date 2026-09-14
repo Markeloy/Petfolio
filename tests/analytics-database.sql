@@ -7,6 +7,7 @@ BEGIN
  SELECT household_id INTO oh FROM public.household_members WHERE user_id=outsider LIMIT 1;
  INSERT INTO public.pets(household_id,name,created_by) VALUES(h,'Fixture',u) RETURNING id INTO pet;
  INSERT INTO public.pets(household_id,name,created_by) VALUES(oh,'Other',outsider) RETURNING id INTO op;
+ UPDATE auth.users SET email_confirmed_at=now()-interval '1 hour' WHERE id=u;
  PERFORM set_config('request.jwt.claim.sub',u::text,true);
  PERFORM set_config('role','authenticated',true);
  PERFORM public.track_analytics_event(eid,'dose_recorded',now(),p_pet_id=>pet,p_environment=>'development',p_properties=>'{"status":"given","already_recorded":false,"schedule_type":"daily_time"}');
@@ -29,7 +30,10 @@ BEGIN
   PERFORM 1 FROM private.analytics_events;
   RAISE EXCEPTION 'Private events readable by authenticated client';
  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ PERFORM public.track_analytics_event(gen_random_uuid(),'signup_completed',now(),p_properties=>'{"auth_method":"password"}');
+ PERFORM public.track_analytics_event(gen_random_uuid(),'signup_completed',now(),p_properties=>'{"auth_method":"password"}');
  PERFORM set_config('role','none',true);
+ IF (SELECT count(*) FROM private.analytics_events WHERE event_name='signup_completed' AND user_id=u)<>1 THEN RAISE EXCEPTION 'Signup milestone duplicated'; END IF;
  IF (SELECT count(*) FROM private.analytics_events WHERE event_id=eid)<>1 THEN RAISE EXCEPTION 'Event deduplication failed'; END IF;
  IF NOT EXISTS(SELECT 1 FROM private.analytics_events WHERE event_id=eid AND user_id=u AND household_id=h AND properties->>'status'='given' AND analytics_schema_version=1) THEN RAISE EXCEPTION 'Actor/context/version derived incorrectly'; END IF;
  PERFORM set_config('request.jwt.claim.sub','',true);

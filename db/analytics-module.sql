@@ -32,6 +32,7 @@ declare
   rules jsonb := '{"app_error_seen":{"error_code":["page_load_failed"]},"critical_action_failed":{"error_code":["medication_access_denied","medication_create_failed","medication_creation_failed","pet_create_failed","weight_write_failed","medication_create_rls"],"failure_class":["validation","rls","network","storage","server","unknown"]},"dose_action_started":{"action":["given","skipped"]},"dose_record_failed":{"error_code":["dose_access_denied","dose_write_failed","dose_network_failed"],"failure_class":["validation","rls","network","storage","server","unknown"]},"dose_recorded":{"already_recorded":"boolean","schedule_type":["daily_time","interval","as_needed"],"status":["given","skipped"]},"health_event_created":{"event_type":["vaccination","parasite","visit","symptom","weight","other"],"status":["planned","completed","cancelled"]},"landing_viewed":{},"login_completed":{"auth_method":["password"]},"medication_created":{"has_end_date":"boolean","schedule_count":[1,2,3],"schedule_type":["daily_time","interval","as_needed"]},"medication_detail_viewed":{"medication_status":["active","paused","completed","cancelled"]},"medication_history_viewed":{"history_count_bucket":["0","1-2","3-9","10-29","30+"]},"parasite_treatment_recorded":{"has_next_due_date":"boolean"},"pet_created":{"is_first_pet":"boolean","species":["dog","cat","bird","rodent","reptile","other"]},"pet_creation_started":{"entry_point":["onboarding","home"]},"pet_profile_updated":{"fields_changed_count":"count"},"signup_completed":{"auth_method":["password"]},"signup_started":{},"vaccination_recorded":{"has_next_due_date":"boolean"},"vet_visit_recorded":{"has_follow_up_date":"boolean"},"weight_recorded":{"is_first_weight":"boolean"}}'::jsonb -> p_event_name;
   rule jsonb;
   property_key text;
+  confirmed_at timestamptz;
 begin
   if p_event_id is null or p_event_name is null or not (p_event_name = any(allowed_events)) then
     raise exception 'Unsupported analytics event' using errcode='22023';
@@ -88,6 +89,14 @@ begin
     elsif resolved_household is not null and not private.is_household_member(resolved_household, actor) then
       raise exception 'Household unavailable' using errcode='42501';
     end if;
+  end if;
+
+  -- Completion is tied to the verified Auth identity, not a client-supplied ID or clock.
+  if p_event_name='signup_completed' then
+    select email_confirmed_at into confirmed_at from auth.users where id=actor;
+    if confirmed_at is null then raise exception 'Signup not confirmed' using errcode='42501'; end if;
+    p_event_id := md5('petfolio:signup_completed:' || actor::text)::uuid;
+    p_occurred_at := confirmed_at;
   end if;
 
   insert into private.analytics_events(

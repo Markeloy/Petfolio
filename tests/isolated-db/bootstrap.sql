@@ -19,7 +19,7 @@ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$
   SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
 $$;
 CREATE TYPE public.household_role AS ENUM ('owner','member','viewer');
-CREATE TABLE auth.users(id uuid PRIMARY KEY,raw_user_meta_data jsonb DEFAULT '{}'::jsonb);
+CREATE TABLE auth.users(id uuid PRIMARY KEY,raw_user_meta_data jsonb DEFAULT '{}'::jsonb,email_confirmed_at timestamptz);
 CREATE TABLE public.profiles(id uuid PRIMARY KEY REFERENCES auth.users(id),display_name text,timezone text DEFAULT 'Europe/Moscow');
 CREATE TABLE public.households(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text DEFAULT 'Моя семья',created_by uuid REFERENCES auth.users(id),created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now());
 CREATE TABLE public.household_members(household_id uuid REFERENCES public.households(id),user_id uuid REFERENCES auth.users(id),role public.household_role DEFAULT 'member',joined_at timestamptz DEFAULT now(),PRIMARY KEY(household_id,user_id));
