@@ -1,8 +1,8 @@
-
 import {getT} from "@/lib/i18n/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { AnalyticsFormFields, LoginAnalytics } from "@/app/components/product-analytics";
 import { login, signup } from "./actions";
 
 type LoginPageProps = {
@@ -19,6 +19,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const signupMode = params.mode === "signup";
 
   return <main className="authShell">
+    <LoginAnalytics signupMode={signupMode} />
     <section className="authCard">
       <p className="authBrand">Petfolio</p>
       <div className="authIntro">
@@ -31,6 +32,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       {params.message ? <p className="formNotice successNotice">{t(params.message)}</p> : null}
 
       <form className="authForm" action={signupMode ? signup : login}>
+        <AnalyticsFormFields />
         {signupMode ? <label><span>{t("Имя")}</span><input name="name" type="text" autoComplete="name" placeholder={t("Маша")} required /></label> : null}
         <label><span>Email</span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" required /></label>
         <label><span>{t("Пароль")}</span><input name="password" type="password" autoComplete={signupMode ? "new-password" : "current-password"} minLength={8} required /></label>
