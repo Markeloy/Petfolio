@@ -2,6 +2,7 @@
 import {useT} from "@/lib/i18n/client";
 
 import { useState } from "react";
+import { AnalyticsFormFields } from "@/app/components/product-analytics";
 import { createPet } from "./actions";
 
 const speciesOptions = [
@@ -20,6 +21,7 @@ export function PetWizard({ error }: { error?: string }) {
   const [name, setName] = useState("");
 
   return <form className="petWizard" action={createPet}>
+    <AnalyticsFormFields />
     <input type="hidden" name="species" value={species || "other"} />
     <div className="wizardProgress" aria-label={`${t('Шаг')} ${step} ${t('из')} 3`}><span className={step >= 1 ? "active" : ""}/><span className={step >= 2 ? "active" : ""}/><span className={step >= 3 ? "active" : ""}/></div>
     {error ? <p className="formNotice errorNotice" role="alert">{t(error)}</p> : null}
