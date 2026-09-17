@@ -25,6 +25,7 @@ function client(tables) {
     const filters=[];
     return {
       select(){return this;},order(){return this;},
+      in(k,values){filters.push(row=>values.includes(row[k]));return this;},
       eq(k,v){filters.push(row=>row[k]===v);return this;},
       is(k,v){filters.push(row=>row[k]===v);return this;},
       gte(k,v){filters.push(row=>row[k]>=v);return this;},
@@ -60,4 +61,13 @@ test('nearest feeding reminder skips a future marked feeding and selects tomorro
   const db=client({feeding_plans:[entry],feeding_logs:[{plan_id:'plan',pet_id:'pet',planned_on:'2026-09-08',scheduled_for:'2026-09-08T05:00:00.000Z'}]});
   const result=await feedingReminders(db,['pet'],new Date('2026-09-08T01:00Z'));
   assert.equal(result.get('pet').instant,'2026-09-09T05:00:00.000Z');assert.equal(result.get('pet').kind,'feeding');
+});
+test('batched feeding retains independent pets and excludes unselected households',async()=>{
+ const plans=['a','b','outside'].map(id=>({...plan,id:'plan-'+id,pet_id:id,food:id,amount:50,unit:'г'}));
+ const db=client({feeding_plans:plans,feeding_logs:[]});
+ const entries=await feedingCalendar(db,['a','b'],'2026-09-08','UTC',new Date('2026-09-08T01:00Z'));
+ assert.deepEqual(entries.map(e=>e.petId).sort(),['a','b']);
+ assert.ok(entries.every(e=>e.href===`/pets/${e.petId}/nutrition/plan-${e.petId}`));
+ const reminders=await feedingReminders(db,['a','b'],new Date('2026-09-08T01:00Z'));
+ assert.deepEqual([...reminders.keys()].sort(),['a','b']);
 });

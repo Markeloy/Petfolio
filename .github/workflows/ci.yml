@@ -51,3 +51,6 @@ jobs:
 
       - name: HTTP smoke test
         run: node tests/http-smoke.mjs
+
+      - name: Authenticated route rendering with controlled backend latency
+        run: BENCH_VERIFY_FLOWS=1 node tests/route-performance.mjs

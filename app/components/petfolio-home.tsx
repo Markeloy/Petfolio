@@ -94,14 +94,14 @@ function QuickActions({petId}:{petId:string}){
   const t=useT();
   return <section className="quickAdd" aria-labelledby="quick-add-heading">
     <h2 id="quick-add-heading">{t('Быстро добавить')}</h2>
-    <div>{quickActions.map(action=><Link prefetch={true} href={action.href(petId)} className={`quickAction ${action.tone}`} key={action.label}><span><Icon name={action.icon} size={21}/></span><strong>{t(action.label)}</strong><NavigationHint/></Link>)}</div>
+    <div>{quickActions.map(action=><Link href={action.href(petId)} className={`quickAction ${action.tone}`} key={action.label}><span><Icon name={action.icon} size={21}/></span><strong>{t(action.label)}</strong><NavigationHint/></Link>)}</div>
   </section>;
 }
 
 function SectionCard({ section, petId }: { section: (typeof sections)[number]; petId: string }) {
   const t=useT();
   const content = <><span className="cardArrow">›</span><span className="cardIcon"><Icon name={section.icon}/></span><strong>{t(section.title)}</strong><small>{t(section.description)}</small></>;
-  if (section.route) return <Link prefetch={true} className={`sectionCard ${section.tone}`} href={`/pets/${petId}/${section.route}`}>{content}<NavigationHint/></Link>;
+  if (section.route) return <Link className={`sectionCard ${section.tone}`} href={`/pets/${petId}/${section.route}`}>{content}<NavigationHint/></Link>;
   return <button className={`sectionCard ${section.tone}`} type="button">{content}</button>;
 }
 
@@ -129,7 +129,7 @@ function NavigationHint(){
 }
 export function BottomNav({active}:{active:NavKey}){
   const t=useT();
-  return <nav className="bottomNav" aria-label={t('Основная навигация')}>{navItems.map(item=><Link prefetch={true} href={item.key==='home'?'/':item.key==='more'?'/?tab=more':`/${item.key}`} className={active===item.key?'active':''} key={item.key} aria-current={active===item.key?'page':undefined}><Icon name={item.icon} size={22}/><span>{t(item.label)}</span><NavigationHint/></Link>)}</nav>;
+  return <nav className="bottomNav" aria-label={t('Основная навигация')}>{navItems.map(item=><Link href={item.key==='home'?'/':item.key==='more'?'/?tab=more':`/${item.key}`} className={active===item.key?'active':''} key={item.key} aria-current={active===item.key?'page':undefined}><Icon name={item.icon} size={22}/><span>{t(item.label)}</span><NavigationHint/></Link>)}</nav>;
 }
 
 function HomeContent({ pets, activePetIndex, onActivePetIndexChange,notices,shopping,noticeScope,noticeError }: { pets: PetViewModel[]; activePetIndex: number; onActivePetIndexChange: (index: number) => void;notices:Notice[];shopping:Notice[];noticeScope:string;noticeError:boolean }) {

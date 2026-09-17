@@ -62,3 +62,12 @@ test('health repeats and original records stay distinct; archives and other pets
   assert.equal(entries.length,2);assert.equal(entries.filter(e=>!e.done).length,1);
   assert.equal(new Set(entries.map(e=>e.id)).size,2);
 });
+test('batched calendar keeps dose ownership and links correct across pets',async()=>{
+ const meds=[medication,{...medication,id:'m2',pet_id:'p2'},{...medication,id:'m3',pet_id:'outsider'}];
+ const schedules=[schedule,{...schedule,id:'s2',medication_id:'m2'},{...schedule,id:'s3',medication_id:'m3'}];
+ const doses=[dose,{...dose,id:'d2',schedule_id:'s2'},{...dose,id:'d3',schedule_id:'s3'}];
+ const rows=await calendarEntries(client({medications:meds,medication_schedules:schedules,medication_doses:doses}),['p','p2'],'2026-09-08','UTC',new Date('2026-09-08T12:00Z'));
+ assert.equal(rows.length,2);
+ assert.deepEqual(rows.map(r=>r.petId).sort(),['p','p2']);
+ assert.equal(rows.find(r=>r.petId==='p2').href,'/pets/p2/care/medications/m2');
+});

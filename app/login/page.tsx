@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AnalyticsFormFields, LoginAnalytics } from "@/app/components/product-analytics";
+import {AuthSubmit} from "./submit";
 import { login, signup } from "./actions";
 
 type LoginPageProps = {
@@ -33,11 +34,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       <form className="authForm" action={signupMode ? signup : login}>
         <AnalyticsFormFields />
-        {signupMode ? <label><span>{t("Имя")}</span><input name="name" type="text" autoComplete="name" placeholder={t("Маша")} required /></label> : null}
-        <label><span>Email</span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" required /></label>
+        {signupMode ? <label><span>{t("Имя")}</span><input name="name" type="text" autoComplete="name" placeholder={t("Маша")} maxLength={100} required /></label> : null}
+        <label><span>Email</span><input name="email" type="email" autoComplete="email" placeholder="name@example.com" maxLength={254} required /></label>
         <label><span>{t("Пароль")}</span><input name="password" type="password" autoComplete={signupMode ? "new-password" : "current-password"} minLength={8} required /></label>
-        {signupMode ? <label><span>{t("Повторите пароль")}</span><input name="passwordConfirm" type="password" autoComplete="new-password" minLength={8} required /></label> : null}
-        <button className="primaryAction" type="submit">{signupMode ? t("Создать аккаунт") : t("Войти")}</button>
+        <AuthSubmit signup={signupMode}/>
       </form>
 
       <p><Link href="/about">{t("О бете и ваших данных")}</Link></p>

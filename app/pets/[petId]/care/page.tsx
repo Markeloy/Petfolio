@@ -28,15 +28,17 @@ export default async function CarePage({ params }: { params: Promise<{ petId: st
   if (petError) redirect("/auth/error?reason=pet");
   if (!pet) notFound();
 
-  const { data: medications, error: medicationsError } = await supabase
+  const medicationsPromise = supabase
     .from("medications")
     .select("id, name, dose_amount, dose_unit, instructions, starts_on, ends_on, status, medication_schedules(id, scheduled_time, is_active)")
     .eq("pet_id", petId)
     .order("created_at", { ascending: false });
 
+  const [{data:medications,error:medicationsError},procedures]=await Promise.all([
+    medicationsPromise,
+    allPages((from,to)=>supabase.from('care_procedures').select('*').eq('pet_id',petId).order('next_on',{nullsFirst:false}).order('id').range(from,to)),
+  ]);
   if (medicationsError) redirect("/auth/error?reason=medications");
-
-  const procedures=await allPages((from,to)=>supabase.from('care_procedures').select('*').eq('pet_id',petId).order('next_on',{nullsFirst:false}).order('id').range(from,to));
   const activeMedications = (medications ?? []).filter((medication) => medication.status === "active" || medication.status === "paused");
 
   return <main className="detailShell">

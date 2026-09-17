@@ -36,19 +36,14 @@ export async function signup(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
   const analyticsContext = analyticsContextFromForm(formData);
 
-  if (!name || !email || !password) {
+  if (!name || name.length > 100 || !email || email.length > 254 || !password) {
     redirect(authUrl({ mode: "signup", error: "Заполните обязательные поля" }));
   }
 
   if (password.length < 8) {
     redirect(authUrl({ mode: "signup", error: "Пароль должен содержать минимум 8 символов" }));
-  }
-
-  if (password !== passwordConfirm) {
-    redirect(authUrl({ mode: "signup", error: "Пароли не совпадают" }));
   }
 
   const supabase = await createClient();

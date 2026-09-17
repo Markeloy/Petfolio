@@ -7,7 +7,7 @@ export const healthContext=cache(async function healthContext(petId:string) {
   if(error||typeof auth?.claims?.sub!=='string') redirect('/login');
   const userId=auth.claims.sub;
   const [pet,profile]=await Promise.all([
-    client.from('pets').select('id,name').eq('id',petId).is('archived_at',null).maybeSingle(),
+    client.from('pets').select('id,name,household_id').eq('id',petId).is('archived_at',null).maybeSingle(),
     client.from('profiles').select('timezone').eq('id',userId).maybeSingle(),
   ]);
   if(pet.error||profile.error) throw new Error('Не удалось загрузить данные питомца');

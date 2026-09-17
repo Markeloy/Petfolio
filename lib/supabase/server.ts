@@ -1,9 +1,10 @@
 import {publicConfig} from '@/lib/config/public';
 import { createServerClient } from "@supabase/ssr";
+import {cache} from "react";
 import { cookies } from "next/headers";
 import type { Database } from "./database.types";
 
-export async function createClient() {
+export const createClient = cache(async function createClient() {
   const cookieStore = await cookies();
   const {supabaseUrl:url,publishableKey}=publicConfig();
 
@@ -27,4 +28,4 @@ export async function createClient() {
       },
     },
   });
-}
+});

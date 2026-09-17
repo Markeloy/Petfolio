@@ -20,7 +20,7 @@ export type Database = {
     Tables: {
       care_procedures:{Row:CareProcedure;Insert:never;Update:never;Relationships:[]}
       care_procedure_logs:{Row:ProcedureLog;Insert:never;Update:never;Relationships:[]}
-      pet_activities: {Row:PetActivity;Insert:never;Update:never;Relationships:[]}
+      pet_activities: {Row:PetActivity;Insert:never;Update:never;Relationships:[{foreignKeyName:'pet_activities_pet_id_fkey';columns:['pet_id'];isOneToOne:false;referencedRelation:'pets';referencedColumns:['id']}]}
       pet_documents: {Row:PetDocument;Insert:never;Update:never;Relationships:[]}
       feeding_plans: {Row:FeedingPlan;Insert:never;Update:never;Relationships:[]}
       feeding_logs: {Row:FeedingLog;Insert:never;Update:never;Relationships:[]}

@@ -16,16 +16,16 @@ export default async function FamilyPage() {
   const userId=claims?.claims?.sub;
   if(authError||typeof userId!=='string')redirect('/login');
   const {memberships,active}=await familyMemberships(client,userId);
-  const families=memberships.length?await client.from('households').select('id,name').in('id',memberships.map(m=>m.household_id)):{data:[],error:null};
-  if(families.error)throw new Error('Не удалось загрузить семьи');
+  const [families,members,invites]=await Promise.all([
+    memberships.length?client.from('households').select('id,name').in('id',memberships.map(m=>m.household_id)):{data:[],error:null},
+    active?client.from('household_members').select('user_id,role,joined_at').eq('household_id',active.household_id).order('joined_at').order('user_id'):{data:[],error:null},
+    active?.role==='owner'?client.rpc('family_action',{p_action:'invites',p_household:active.household_id}):{data:[],error:null},
+  ]);
+  if(families.error||members.error||invites.error)throw new Error('Не удалось загрузить семьи');
   const family=families.data?.find(f=>f.id===active?.household_id);
-  const members=active?await client.from('household_members').select('user_id,role,joined_at').eq('household_id',active.household_id).order('joined_at').order('user_id'):{data:[],error:null};
-  if(members.error)throw new Error('Не удалось загрузить участников');
   const profiles=members.data?.length?await client.from('profiles').select('id,display_name').in('id',members.data.map(m=>m.user_id)):{data:[],error:null};
   if(profiles.error)throw new Error('Не удалось загрузить имена');
   const names=new Map(profiles.data?.map(p=>[p.id,p.display_name||t('Участник')]));
-  const invites=active?.role==='owner'?await client.rpc('family_action',{p_action:'invites',p_household:active.household_id}):{data:[],error:null};
-  if(invites.error)throw new Error('Не удалось загрузить приглашения');
   const invitations=invites.data as Invite[];
   return <main className="appShell"><RefreshOnFocus/><div className="content familyContent"><header><p className="eyebrow">Petfolio</p><h1>{t("Семья")}</h1><p>{t("Ухаживайте за питомцами вместе")}</p></header>
     {memberships.length>1&&<section><h2>{t("Выбранная семья")}</h2><FamilyForm action="switch" label={t("Выбрать")} key={active?.household_id}><label>{t("Семья")}<select name="household" defaultValue={active?.household_id}>{memberships.map(m=><option value={m.household_id} key={m.household_id}>{families.data?.find(f=>f.id===m.household_id)?.name} · {m.role==='owner'?t("владелец"):m.role==='viewer'?t("Наблюдатель"):t("участник")}</option>)}</select></label></FamilyForm><p>{t("Главная, календарь и добавление питомца используют выбранную семью. Питомцы других семей сохраняются.")}</p></section>}

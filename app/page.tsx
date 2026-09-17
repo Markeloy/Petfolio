@@ -60,7 +60,12 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
 
   const { data: petRows, error: petsError } = await supabase
     .from("pets")
-    .select("id, name, birth_date, avatar_url, created_at")
+    .select("id, name, birth_date, avatar_url, created_at, weight_records(weight_kg, measured_at)")
+    .is("weight_records.archived_at", null)
+    .order("measured_at", {referencedTable:"weight_records", ascending:false})
+    .order("created_at", {referencedTable:"weight_records", ascending:false})
+    .order("id", {referencedTable:"weight_records", ascending:false})
+    .limit(1, {referencedTable:"weight_records"})
     .eq("household_id", membership.household_id)
     .is("archived_at", null)
     .order("created_at", { ascending: true });
@@ -74,24 +79,23 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
   }
 
   const petIds = petRows.map((pet) => pet.id);
-  const weightsPromise = Promise.all(petIds.map(petId=>supabase
-    .from("weight_records").select("pet_id, weight_kg, measured_at").eq("pet_id",petId)
-    .is("archived_at",null).order("measured_at",{ascending:false})
-    .order("created_at",{ascending:false}).order("id",{ascending:false}).limit(1)));
+  const avatarPaths=[...new Set(petRows.flatMap(p=>p.avatar_url?[p.avatar_url]:[]))];
+  const avatarsPromise=avatarPaths.length
+    ?supabase.storage.from('pet-avatars').createSignedUrls(avatarPaths,60*60)
+    :Promise.resolve({data:[],error:null});
+  const profilePromise=supabase.from('profiles').select('timezone').eq('id',userId).maybeSingle().then(result=>result);
+  const now=new Date();
   const stockPromise=allPages((from,to)=>supabase.from('stock_items').select('id,name,quantity,threshold,unit,updated_at,archived_at').eq('household_id',membership.household_id).is('archived_at',null).eq('is_low',true).order('name').order('id').range(from,to)).catch(()=>null);
-  const [lowStock,weightResults,[careReminders,reminders,healthReminders,foodReminders,walkReminders]]=await Promise.all([stockPromise,weightsPromise,(async()=>{
-    const {data:profile,error:profileError}=await supabase.from('profiles').select('timezone').eq('id',userId).maybeSingle();
-    const now=new Date();
-    return Promise.all([
-      procedureReminders(supabase,petIds,now,t),
-      getReminders(supabase,petIds,now,t('ru-RU')),
-      profileError?Promise.resolve(null):getHealthReminders(supabase,petIds,profile?.timezone??'Europe/Moscow',now,t),
-      feedingReminders(supabase,petIds,now,t('ru-RU')),
-      profileError?Promise.resolve(null):activityReminders(supabase,petIds,profile?.timezone??'Europe/Moscow',now,t),
-    ]);
-  })()]);
-  if(weightResults.some(r=>r.error))throw new Error('Не удалось загрузить вес');
-  const latestWeights=new Map(weightResults.flatMap(r=>r.data??[]).map(row=>[row.pet_id,Number(row.weight_kg)]));
+  const [lowStock,avatars,careReminders,reminders,healthReminders,foodReminders,walkReminders]=await Promise.all([
+    stockPromise,avatarsPromise,
+    procedureReminders(supabase,petIds,now,t),
+    getReminders(supabase,petIds,now,t('ru-RU')),
+    profilePromise.then(({data,error})=>error?null:getHealthReminders(supabase,petIds,data?.timezone??'Europe/Moscow',now,t)),
+    feedingReminders(supabase,petIds,now,t('ru-RU')),
+    profilePromise.then(({data,error})=>error?null:activityReminders(supabase,petIds,data?.timezone??'Europe/Moscow',now,t)),
+  ]);
+  const images=new Map((avatars.data??[]).map(item=>[item.path,item.signedUrl]));
+  const latestWeights=new Map(petRows.map(p=>[p.id,p.weight_records[0]?.weight_kg]));
   const shopping=stockNotices(lowStock??[],t);
   const notices:Notice[]=[...shopping];
   for(const set of [reminders,healthReminders,foodReminders,walkReminders,careReminders])for(const [petId,event] of set??[]){
@@ -108,14 +112,9 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
     if(!reminders.has(petId)||Date.parse(event.instant)<Date.parse(reminders.get(petId)!.instant))reminders.set(petId,event);
   }
 
-  const pets: PetViewModel[] = await Promise.all(petRows.map(async (pet) => {
+  const pets: PetViewModel[] = petRows.map(pet => {
     const weight = latestWeights.get(pet.id);
-    let image: string | null = null;
-
-    if (pet.avatar_url) {
-      const { data } = await supabase.storage.from("pet-avatars").createSignedUrl(pet.avatar_url, 60 * 60);
-      image = data?.signedUrl ?? null;
-    }
+    const image = pet.avatar_url ? images.get(pet.avatar_url) ?? null : null;
 
     return {
       id: pet.id,
@@ -128,7 +127,7 @@ export default async function HomePage({searchParams}: {searchParams: Promise<{t
         [formatAge(pet.birth_date,t), "Возраст"],
       ],
     };
-  }));
+  });
 
   const initialTab = 'home';
   return <PetfolioHome key={`${membership.household_id}:${initialTab}`} pets={pets} initialTab={initialTab} notices={notices} shopping={shopping} noticeScope={`${userId}:${membership.household_id}`} noticeError={lowStock===null||reminders===null||healthReminders===null||foodReminders===null||walkReminders===null||careReminders===null} />;

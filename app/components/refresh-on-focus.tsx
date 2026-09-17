@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 export function RefreshOnFocus() {
   const router = useRouter();
   useEffect(() => {
-    const refresh = () => { if (document.visibilityState === 'visible') router.refresh(); };
+    let lastRefresh=Date.now();
+    const refresh = () => {
+      if(document.visibilityState!=='visible'||Date.now()-lastRefresh<30000)return;
+      lastRefresh=Date.now();
+      router.refresh();
+    };
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
     const timer = window.setInterval(refresh, 60000);

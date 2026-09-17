@@ -37,10 +37,10 @@ export default async function MedicationPage({ params, searchParams }: {
     return instant ? [{ schedule, instant }] : [];
   }).sort((a, b) => Date.parse(a.instant) - Date.parse(b.instant));
   const ids = schedules.map(s => s.id);
-  const todayResult = today.length ? await supabase.from('medication_doses').select('*').in('schedule_id', ids)
-    .gte('scheduled_for', today[0].instant).lte('scheduled_for', today[today.length - 1].instant) : { data: [], error: null };
-  const historyResult = ids.length ? await supabase.from('medication_doses').select('*').in('schedule_id', ids)
-    .order('scheduled_for', { ascending: false }).order('id', { ascending: false }).range(page * 30, page * 30 + 30) : { data: [], error: null };
+  const [todayResult,historyResult] = await Promise.all([today.length ? supabase.from('medication_doses').select('*').in('schedule_id', ids)
+    .gte('scheduled_for', today[0].instant).lte('scheduled_for', today[today.length - 1].instant) : { data: [], error: null },
+    ids.length ? supabase.from('medication_doses').select('*').in('schedule_id', ids)
+    .order('scheduled_for', { ascending: false }).order('id', { ascending: false }).range(page * 30, page * 30 + 30) : { data: [], error: null }]);
   if (todayResult.error || historyResult.error) throw new Error('Не удалось загрузить отметки приёмов');
   const marks = new Map((todayResult.data ?? []).map(d => [doseKey(d.schedule_id, d.scheduled_for), d]));
   const history = (historyResult.data ?? []).slice(0, 30);
