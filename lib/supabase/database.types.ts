@@ -448,6 +448,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      update_notification_receipts: {Args:{p_household:string;p_ids:string[];p_action:string};Returns:{notice_id:string;is_read:boolean;dismissed:boolean}[]}
       procedure_action:{Args:{p_action:string;p_pet:string;p_id:string;p_values:Json};Returns:string}
       activity_action: {Args:{p_action:string;p_pet:string;p_activity:string;p_values:Json};Returns:string}
       document_action: {Args:{p_action:string;p_pet:string;p_document:string;p_values:Json};Returns:Json}

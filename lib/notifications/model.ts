@@ -12,3 +12,11 @@ export function readIds(raw:string):string[]{
   try{const data:unknown=JSON.parse(raw);return Array.isArray(data)?data.filter((id):id is string=>typeof id==='string'&&id.length<500):[];}catch{return [];}
 }
 export function unreadCount(items:Notice[],read:ReadonlySet<string>){return items.filter(item=>!read.has(item.id)).length;}
+
+export type NoticeReceipt={notice_id:string;is_read:boolean;dismissed:boolean};
+// Receipts only move forward. A slower refresh must not revive a dismissed item.
+export function mergeReceipts(previous:NoticeReceipt[],incoming:NoticeReceipt[]):NoticeReceipt[]{
+  const result=new Map(previous.map(row=>[row.notice_id,row]));
+  for(const row of incoming){const old=result.get(row.notice_id);result.set(row.notice_id,{notice_id:row.notice_id,is_read:row.is_read||!!old?.is_read,dismissed:row.dismissed||!!old?.dismissed});}
+  return [...result.values()];
+}

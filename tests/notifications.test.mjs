@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {stockNotices,readIds,unreadCount} from '../lib/notifications/model.ts';
+import {stockNotices,readIds,unreadCount,mergeReceipts} from '../lib/notifications/model.ts';
 import {translator} from '../lib/i18n/core.ts';
 const item={id:'food',name:'Корм Барсика',quantity:100,threshold:100,unit:'г',updated_at:'v1',archived_at:null};
 test('shopping alerts include threshold equality and zero, exclude restocked and archived supplies',()=>{
@@ -24,4 +24,12 @@ test('malformed receipts are ignored without truncating a large valid inbox',()=
   assert.deepEqual(readIds('[null,3,"ok"]'),['ok']);
   assert.deepEqual(readIds(JSON.stringify(['x'.repeat(501)])),[]);
   assert.equal(readIds(JSON.stringify(Array.from({length:600},(_,i)=>String(i)))).length,600);
+});
+
+test('late receipt refresh cannot revive a dismissed notification or inflate unread badge',()=>{
+ const merged=mergeReceipts([{notice_id:'a',is_read:false,dismissed:true}],[{notice_id:'a',is_read:true,dismissed:false},{notice_id:'b',is_read:false,dismissed:false}]);
+ assert.equal(merged.find(r=>r.notice_id==='a').dismissed,true);
+ assert.equal(merged.find(r=>r.notice_id==='a').is_read,true);
+ const items=[{id:'a'},{id:'b'}].filter(item=>!merged.some(r=>r.notice_id===item.id&&r.dismissed));
+ assert.equal(unreadCount(items,new Set(merged.filter(r=>r.is_read).map(r=>r.notice_id))),1);
 });

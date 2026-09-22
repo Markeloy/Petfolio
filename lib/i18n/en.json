@@ -826,5 +826,10 @@
   "История": "History",
   "О бете и ваших данных": "About the beta and your data",
   "Здоровье, уход и история вашего питомца в одном месте.": "Your pet’s health, care and history in one place.",
-  "Войдите, чтобы открыть Petfolio.": "Sign in to open Petfolio."
+  "Войдите, чтобы открыть Petfolio.": "Sign in to open Petfolio.",
+  "Прочтение и скрытие сохраняются в вашем аккаунте. События ухода остаются на месте.": "Read and dismissed notifications are saved to your account. Care records are kept.",
+  "Очистить прочитанные": "Clear read notifications",
+  "Скрыть уведомление": "Dismiss notification",
+  "Загрузка уведомлений…": "Loading notifications…",
+  "Не удалось сохранить или загрузить уведомления. Обновите страницу.": "Could not save or load notifications. Refresh the page."
 }

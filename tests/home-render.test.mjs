@@ -9,6 +9,8 @@ const asModule=code=>`data:text/javascript;base64,${Buffer.from(code).toString('
 const react=import.meta.resolve('react');
 const adapters={
   react,
+  'next/navigation':asModule('export const useRouter=()=>({push(){}});'),
+  '@/lib/notifications/actions':asModule('export const noticeReceipts=async()=>({ok:true,rows:[]});'),
   '@/lib/i18n/client':asModule(`import {translator} from '${new URL('../lib/i18n/core.ts',import.meta.url).href}';export const useT=()=>translator('en');`),
   'next/link':asModule(`import {createElement} from '${react}';export default function Link({prefetch,children,...props}){return createElement('a',props,children)};export const useLinkStatus=()=>({pending:false});`),
   './refresh-on-focus':asModule('export const RefreshOnFocus=()=>null;'),
@@ -43,10 +45,10 @@ test('More renders without loading pet data and navigation has five real links',
   assert.match(nav,/href="\/calendar"[^>]+aria-current="page"/);
 });
 
-test('bell is a dialog trigger with unread badge, individual and bulk read controls',()=>{
+test('bell preserves overlay and waits for account receipts before showing unread badge',()=>{
   const items=[{id:'stock:a:1',kind:'stock',title:'Food',detail:'Remaining: 100 g',href:'/stock/a'}];
   const html=renderToStaticMarkup(createElement(NotificationCenter,{items,scope:'user:family'}));
-  assert.match(html,/aria-haspopup="dialog"/);assert.match(html,/class="notificationBadge"[^>]*>1</);
-  assert.match(html,/<dialog/);assert.match(html,/Mark all as read/);assert.match(html,/Mark as read/);
+  assert.match(html,/aria-haspopup="dialog"/);assert.ok(!html.includes('class="notificationBadge"'));assert.match(html,/Loading notifications/);
+  assert.match(html,/<dialog/);assert.match(html,/Dismiss notification/);assert.match(html,/Mark as read/);
   assert.match(html,/href="\/stock\/a"/);assert.ok(!html.includes('/calendar'));
 });
