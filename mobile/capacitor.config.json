@@ -1,0 +1,21 @@
+{
+  "appId": "com.markeloy.petfolio.alpha",
+  "appName": "Petfolio Alpha",
+  "webDir": "www",
+  "server": {
+    "url": "https://petfolio-warsw-markelos123.waw0.amvera.tech",
+    "cleartext": false,
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#f7f6f3"
+  },
+  "loggingBehavior": "none",
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "native",
+      "style": "DEFAULT"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+export const foodUnits=['г','кг','мл','л','шт','упак'] as const;
+export type FeedingPlan={id:string;pet_id:string;household_id:string;food:string;amount:number;unit:string;scheduled_time:string;timezone:string;active_from:string;active_until:string|null;stock_item_id:string|null;notes:string;replaces_id:string|null;archived_at:string|null;created_by:string|null;created_at:string;updated_at:string};
+export type FeedingLog={id:string;plan_id:string;pet_id:string;household_id:string;planned_on:string;scheduled_for:string;status:'fed'|'skipped';food:string;amount:number;unit:string;actor_id:string|null;actor_name:string;recorded_at:string;stock_movement_id:string|null};

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Petfolio Alpha</string>
+    <string name="title_activity_main">Petfolio Alpha</string>
+    <string name="package_name">com.markeloy.petfolio.alpha</string>
+    <string name="custom_url_scheme">com.markeloy.petfolio.alpha</string>
+</resources>

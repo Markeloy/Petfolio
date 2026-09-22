@@ -1,0 +1,116 @@
+name: Petfolio CI
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/-petfolio"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      CI: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Isolated database tests
+        run: npm run test:db
+
+      - name: Production build without runtime credentials
+        run: env -u NEXT_PUBLIC_SUPABASE_URL -u NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY npm run build
+
+      - name: HTTP smoke test
+        run: node tests/http-smoke.mjs
+
+      - name: Authenticated route rendering with controlled backend latency
+        run: BENCH_VERIFY_FLOWS=1 node tests/route-performance.mjs
+
+  android-alpha:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install locked Capacitor dependencies
+        run: npm ci --prefix mobile
+      - name: Sync Android assets and build installable debug APK
+        run: |
+          npm run sync --prefix mobile
+          cd mobile/android
+          chmod +x gradlew
+          ./gradlew assembleDebug lintDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: petfolio-android-alpha-${{ github.sha }}
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  sync-amvera:
+    needs: [verify, android-alpha]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/-petfolio'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: amvera-production-sync
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Promote exactly the verified working-branch commit
+        env:
+          VERIFIED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin codex/-petfolio amvera-deploy
+          current=$(git rev-parse origin/codex/-petfolio)
+          if [ "$current" != "$VERIFIED_SHA" ]; then
+            echo 'A newer working commit exists; skip this stale promotion.'
+            exit 0
+          fi
+          git merge-base --is-ancestor origin/amvera-deploy "$VERIFIED_SHA" || {
+            echo 'Deployment branch diverged. Refusing to overwrite or publish unreviewed changes.'
+            exit 1
+          }
+          git push origin "$VERIFIED_SHA:refs/heads/amvera-deploy"
+          test "$(git ls-remote origin refs/heads/amvera-deploy | cut -f1)" = "$VERIFIED_SHA"

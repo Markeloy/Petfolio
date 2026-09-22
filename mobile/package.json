@@ -1,0 +1,1 @@
+{"name":"petfolio-android-alpha","private":true,"version":"0.1.0","scripts":{"sync":"cap sync android","build":"cap sync android && cd android && ./gradlew assembleDebug"},"dependencies":{"@capacitor/android":"8.5.2","@capacitor/core":"8.5.2"},"devDependencies":{"@capacitor/cli":"8.5.2"}}

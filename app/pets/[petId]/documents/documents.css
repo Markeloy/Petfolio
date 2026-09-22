@@ -1,0 +1,21 @@
+.documentShell { font-size:16px; }
+.documentShell h1 { font-size:32px; margin:16px 0; overflow-wrap:anywhere; }
+.documentShell p { line-height:1.5; overflow-wrap:anywhere; }
+.documentShell section { background:var(--c-fff); border-radius:16px; padding:18px; margin-top:18px; }
+.documentForm { display:grid; gap:12px; margin-top:16px; }
+.documentForm label { display:grid; gap:6px; font-size:14px; }
+.documentForm input:not([type=checkbox]),.documentForm select,.documentForm textarea { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--c-d8d1c7); border-radius:10px; font:inherit; background:var(--c-fff); color:var(--ink); }
+.documentForm button,.documentAction { min-height:44px; padding:12px; border:0; border-radius:10px; background:#303030; color:var(--on-solid); text-decoration:none; }
+.documentAction { display:inline-block; }
+.documentForm button:disabled { opacity:.6; }
+.documentForm .documentError { color:var(--c-a33626); }
+.documentForm .documentConfirm { display:flex; align-items:flex-start; line-height:1.5; }
+.documentConfirm input { width:18px; height:18px; flex-shrink:0; }
+.documentList { padding:0; margin:16px 0; list-style:none; display:grid; gap:12px; }
+.documentList a { display:grid; gap:8px; border-bottom:1px solid var(--c-e5dfd6); padding:12px 0; text-decoration:none; overflow-wrap:anywhere; }
+.documentList span,.documentList small { font-size:14px; }
+.documentLinks { display:flex; flex-wrap:wrap; gap:18px; margin:18px 0; }
+.documentLinks a { padding-block:10px; }
+.documentPreview { display:block; width:100%; max-height:70vh; object-fit:contain; background:var(--c-fff); border-radius:12px; }
+.documentNotes { white-space:pre-wrap; }
+.documentShell summary { min-height:44px; padding:12px 0; cursor:pointer; }
